@@ -1,0 +1,15 @@
+"grep code
+set grepformat=%f:%l:%m
+set grepprg=git\ grep\ -n
+
+"compiler
+"set errorformat=\ [my.javac]\ %f:%l:\ %m,[my.breamc]\ %f:%l:%c:\ error:\ %m,[my.breamc]\ error:\ %m
+"set makeprg=ant example-debug
+
+if filereadable(".etc/cscope.out")
+    execute "cs add .etc/cscope.out"
+endif
+
+if filereadable(".etc/tags")
+    set tags+=.etc/tags
+endif

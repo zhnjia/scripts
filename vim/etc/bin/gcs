@@ -1,0 +1,1 @@
+find $(pwd) \( -path "*/\.git" -o -path "*/output" \) -prune -type f -o -regex '.*\.java\|.*\.cc\|.*\.h' | sed -e 's/\(.*\)/"\1"/' > cscope.files
