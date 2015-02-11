@@ -18,20 +18,24 @@ OPTIONS
 EOF
 }
 
+# 0: rooted, for miui
+# 1: not rooted, for oppo
+isDeviceRooted() {
+    adb root 2>&1 | grep -wq "adbd cannot run as root in production builds"
+    echo $?
+}
+
 dir=$(date +%Y%m%d_%H%M%S)
 loop=100
 wt=5
 wb='m.baidu.com/?wpo=btmbase'
 tp="/data/data"
+demo=0
 miui=0
 preLogID=0
 preTcpdumpID=0
 
-isDeviceRooted() {
-    [ "$(adb root)" = 'adbd cannot run as root in production builds' ] && echo 1 || echo 0
-}
-
-while getopts ":n:w:d:e:t:hm" arg
+while getopts ":n:w:d:e:t:hmo" arg
 do
     case $arg in
         n) loop=$OPTARG
@@ -52,6 +56,8 @@ do
             adb shell ps | grep tcpdump | awk '{print $2}' | xargs -I '{}' adb shell kill '{}'
             exit 0
             ;;
+        o) demo=1
+            ;;
         h) help
             exit 0
             ;;
@@ -65,6 +71,7 @@ done
 # $4: web page
 main() {
     local i=1
+    local rtd=$(isDeviceRooted)
     [ -d $dir ] || mkdir $dir
     while [ $loop -ge $i ]
     do
@@ -73,36 +80,33 @@ main() {
         adb logcat -v time > ./${dir}/${t}.log &
         preLogID=$!
 
-        #if [ $(isDeviceRooted) -eq 0 ];then
-        if [ $miui -eq 1 ];then
-            adb shell ${tp}/tcpdump -p -vv -s 0 -i any -w /sdcard/capture${t}.pcap &
-        else
-            #sh -x ./testtcpdump.sh $tp ${dir} $t > /dev/null &
-            sh ./testtcpdump.sh $tp ${dir} $t &
-        fi
+        sh ./testtcpdump.sh $rtd $tp $t &
 
         sleep 1s
-        adb shell am start -n com.android.browser/com.android.browser.BrowserActivity
-        sleep 2s
-        #adb shell am start -a android.intent.action.VIEW -d http://${wb} com.android.browser
-        adb shell am start -a android.intent.action.VIEW -d 'http://m.baidu.com/?wpo=btmbase' com.android.browser
+        if [ $demo -eq 1 ];then
+            adb shell am start -n com.oupeng.android.turboexample/com.oupeng.android.turboexample.MainActivity -d 'url-http://m.baidu.com'
+        else
+            adb shell am start -n com.android.browser/com.android.browser.BrowserActivity
+            sleep 2s
+            #adb shell am start -a android.intent.action.VIEW -d http://${wb} com.android.browser
+            adb shell am start -a android.intent.action.VIEW -d 'http://m.baidu.com/?wpo=btmbase' com.android.browser
+        fi
         sleep ${wt}s
 
         adb  shell screencap -p /mnt/sdcard/test.png
         echo "pull ${t}.png"
         adb  pull /mnt/sdcard/test.png  ./${dir}/${t}.png
 
-        adb shell am force-stop com.android.browser
+        if [ $demo -eq 1 ];then
+            adb shell am force-stop com.oupeng.android.turboexample
+        else
+            adb shell am force-stop com.android.browser
+        fi
 
         sleep 3s
         kill $preLogID
 
-        #if [ $(isDeviceRooted) -eq 0 ];then
-        if [ $miui -eq 1 ];then
-           adb shell ps | grep tcpdump | awk '{print $2}' | xargs -I '{}' adb shell kill '{}'
-        else
-           sh testtcpdump.sh -q > /dev/null
-        fi
+        sh testtcpdump.sh $rtd -q > /dev/null
 
         echo "pull ${t}.pcap"
         adb pull /sdcard/capture${t}.pcap ./${dir}/${t}.pcap

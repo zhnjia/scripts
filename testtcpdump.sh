@@ -1,20 +1,44 @@
 #!/bin/sh
 
-if [ $# -eq 3 ];then
-    tp=$1
-    path=$2
-    tag=$3
+rtd=$1
 
+tcpdmpRtd() {
     adb shell <<EOF
 ${tp}/tcpdump -p -vv -s 0 -i any -w /sdcard/capture${tag}.pcap
 exit
 EOF
-elif [ "$1" = "-q" ];then
-    pc=$(adb shell ps | grep tcpdump | awk '{print $2}')
+}
+
+tcpdmpNotRtd() {
+    adb shell <<EOF
+su
+${tp}/tcpdump -p -vv -s 0 -i any -w /sdcard/capture${tag}.pcap
+exit
+exit
+EOF
+}
+
+stopTcpdumpRtd() {
     adb shell <<EOF
 kill $pc
 exit
 EOF
-    #adb pull /sdcard/capture${tag}.pcap ./${path}/${tag}.pcap
-    #adb shell rm /sdcard/capture${tag}.pcap
+}
+
+stopTcpdumpNotRtd() {
+    adb shell <<EOF
+su
+kill $pc
+exit
+exit
+EOF
+}
+
+if [ $# -eq 3 ];then
+    tp=$2
+    tag=$3
+    [ $rtd -eq 1 ] && tcpdmpRtd || tcpdmpNotRtd
+elif [ "$2" = "-q" ];then
+    pc=$(adb shell ps | grep tcpdump | awk '{print $2}')
+    [ $rtd -eq 1 ] && stopTcpdumpRtd || stopTcpdumpNotRtd
 fi
