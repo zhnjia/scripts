@@ -28,7 +28,7 @@ isDeviceRooted() {
 dir=$(date +%Y%m%d_%H%M%S)
 loop=100
 wt=5
-wb='m.baidu.com/?wpo=btmbase'
+wb='http://m.baidu.com/?wpo=btmbase'
 tp="/data/data"
 demo=0
 miui=0
@@ -89,7 +89,7 @@ main() {
             adb shell am start -n com.android.browser/com.android.browser.BrowserActivity
             sleep 2s
             #adb shell am start -a android.intent.action.VIEW -d http://${wb} com.android.browser
-            adb shell am start -a android.intent.action.VIEW -d 'http://m.baidu.com/?wpo=btmbase' com.android.browser
+            adb shell am start -a android.intent.action.VIEW -d ${wb} com.android.browser
         fi
         sleep ${wt}s
 
