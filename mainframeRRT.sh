@@ -1,29 +1,74 @@
 #!/bin/bash
 
+usage() {
+    cat <<EOF
+Usage:
+    $0 -v -d <path> [--max=seconds] [--protocal=PROTOCAL] [--port=PORT] [--url=URL]
+
+OPTIONS
+    -v
+        show processing infomation
+    -d <path>
+        path of pcaps
+    --max=seconds
+        ignore pcaps which rtt is larger than seconds
+    --protocal=PROTOCAL
+        protocal filter, as http/spdy
+    --port=PORT
+        spdy port filter, as 443/9090
+    --url=URL
+        4mURL to search in pcap
+EOF
+}
+
 dir=./
 max=100
 ptl="spdy"
 url='m.baidu.com/?wpo=btmbase'
+port=443
+detial=0
 
-while getopts ":d:m:p:u:" arg
-do
-    case $arg in
-        d) dir=$OPTARG
+cmds=$(getopt -o vd: -l max:,protocal:,port:,url: -- "$@")
+if [ $? -ne 0 ];then usage;exit 1; fi
+eval set -- "$cmds"
+while true; do
+    case "$1" in
+        -v)
+            detial=1;shift
             ;;
-        m) max=$OPTARG
+        -d)
+            dir=$2;shift 2
             ;;
-        p) ptl=$OPTARG
+        --max)
+            max=$2;shift 2
             ;;
-        u) url=$OPTARG
+        --protocal)
+            ptl=$2;shift 2
             ;;
-        *)
-            exit 1
+        --port)
+            port=$2;shift 2
+            ;;
+        --url)
+            url=$2;shift 2
+            ;;
+        --) shift;break
             ;;
     esac
 done
 
+cat <<EOF
+protocal:$ptl, port:$port, url:$url, max:$max, dir:$dir, detial:$detial
+start [Y/n]?:
+EOF
+
+read cmd
+[ "$cmd" = "n" ] && exit 1
+
 workdir=$(mktemp -d)
 rt=${dir}"/rt_"$(date +%Y%m%d_%H%M%S)".log"
+
+total=$(ls ${dir}/*.pcap | wc -l)
+i=1
 
 for f in ${dir}/*.pcap
 do
@@ -34,15 +79,23 @@ do
             | xargs -I '{}' tshark -r $f -R 'tcp.stream == {} && http' 2> /dev/null \
             | head -n 2 > $tf
     elif [ "$ptl" = "spdy" ];then
-        tshark -r $f -d tcp.port==443,spdy \
-            -R 'spdy.header.value == "m.baidu.com" && spdy.header.value == "/?wpo=btmbase"' \
-            -T fields -e spdy.streamid 2> /dev/null \
-            | xargs -I '{}' tshark -r $f -d tcp.port==443,spdy -R 'spdy.streamid == {}' 2> /dev/null \
-            | head -n 2 > $tf
+        si=$(tshark -r $f -d tcp.port==${port},spdy \
+            -R 'spdy.header.value == "m.baidu.com" && spdy.header.value == "/"' \
+            -T fields -e spdy.streamid 2> /dev/null )
+        [ -z "$si" ] && continue
+        tshark -r $f -d tcp.port==${port},spdy -R "spdy.streamid == $si && spdy.type == 1" 2> /dev/null > $tf
+        tshark -r $f -d tcp.port==${port},spdy -R "spdy.streamid == $si && spdy.type == 2" 2> /dev/null >> $tf
     fi
     if [ $(wc -l < $tf) -ge 2 ]; then
-        echo $(awk -v mx=$max 'NR==1 {st=$2};END {split(FILENAME,fn,"."); if ($2 != st && $2-st < mx) {printf("%f\t%s",$2-st,fn[3])}}' $tf) | tee -a $rt
+        value=$(awk -v mx=$max 'NR==1 {st=$2};END {split(FILENAME,fn,"."); if ($2 != st && $2-st < mx) {printf("%f\t%s",$2-st,fn[3])}}' $tf)
+        if [ $detial -eq 1 ];then
+            echo $value | tee -a $rt
+        else
+            echo $value >> $rt
+            echo -ne "$(expr $i \* 100 / ${total})%\r"
+        fi
     fi
+    i=$(expr $i + 1)
 done
 
 sed -i '/^$/d' $rt
