@@ -21,6 +21,8 @@ OPTIONS
 EOF
 }
 
+if [ $# -eq 0 ];then usage;exit 0; fi
+
 dir=./
 max=100
 ptl="spdy"
@@ -56,16 +58,16 @@ while true; do
     esac
 done
 
+workdir=$(mktemp -d)
+rt=${dir}"/rt_"$(date +%Y%m%d_%H%M%S)".log"
+
 cat <<EOF
-protocal:$ptl, port:$port, url:$url, max:$max, dir:$dir, detial:$detial
+protocal:[$ptl], port:[$port], url:[$url], max:[$max], dir:[$dir], detial:[$detial], output:[$rt]
 start [Y/n]?:
 EOF
 
 read cmd
 [ "$cmd" = "n" ] && exit 1
-
-workdir=$(mktemp -d)
-rt=${dir}"/rt_"$(date +%Y%m%d_%H%M%S)".log"
 
 total=$(ls ${dir}/*.pcap | wc -l)
 i=1
@@ -80,7 +82,7 @@ do
             | head -n 2 > $tf
     elif [ "$ptl" = "spdy" ];then
         si=$(tshark -r $f -d tcp.port==${port},spdy \
-            -R 'spdy.header.value == "m.baidu.com" && spdy.header.value == "/"' \
+            -R "spdy.header.value == \"${url%%/*}\" && spdy.header.value == \"/${url#*/}\"" \
             -T fields -e spdy.streamid 2> /dev/null )
         [ -z "$si" ] && continue
         tshark -r $f -d tcp.port==${port},spdy -R "spdy.streamid == $si && spdy.type == 1" 2> /dev/null > $tf
