@@ -2,7 +2,7 @@
 
 #adb shell rm /sdcard/browser/.log/turbo-$(date +%Y%m%d).log
 
-help() {
+usage() {
     cat <<EOF
 testshengliu.sh [-m] [-n <counts>] [-w <time>] [-d <dir>] [-e <web page>] [-t <path of tcpdump] [-s <stop>]
 
@@ -10,16 +10,17 @@ OPTIONS
     -n counts       total times to visit web page
     -w time         seconds to wait for taking screen capture
     -d dir          save logs/pcaps/pics to dir
-    -e page         web pages
     -t tcpdump      path of tcpdump
     -s stop         stop testing
-    -m miui
-    -h              show help
+    -h              show usage
+    --demo=<1|0>
+    --url=<page>
+        web pages, 'http://m.baidu.com/'
 EOF
 }
 
-# 0: rooted, for miui
-# 1: not rooted, for oppo
+if [ $# -eq 0 ];then usage; exit 0; fi
+
 isDeviceRooted() {
     adb root 2>&1 | grep -wq "adbd cannot run as root in production builds"
     echo $?
@@ -31,35 +32,36 @@ wt=5
 wb='http://m.baidu.com/?wpo=btmbase'
 tp="/data/data"
 demo=0
-miui=0
 preLogID=0
 preTcpdumpID=0
 
-while getopts ":n:w:d:e:t:hmo" arg
-do
-    case $arg in
-        n) loop=$OPTARG
+cmds=$(getopt -o n:w:d:t:hs -l url:,demo: -- "$@")
+if [ $? -ne 0 ];then usage; exit 1; fi
+eval set -- "$cmds"
+
+while true; do
+    case $1 in
+        -n) loop=$2;shift 2
             ;;
-        w) wt=$OPTARG
+        -w) wt=$2;shift 2
             ;;
-        d) dir=$OPTARG
+        -d) dir=$2;shift 2
             ;;
-        e) wb=$OPTARG
-            echo $wb
+        -t) tp=$2;shift 2
             ;;
-        t) tp=$OPTARG
+        --url) wb=$2;shift 2
             ;;
-        m) miui=1
-            ;;
-        s)
+        -s)
             kill $preLogID
             adb shell ps | grep tcpdump | awk '{print $2}' | xargs -I '{}' adb shell kill '{}'
             exit 0
             ;;
-        o) demo=1
+        --demo) demo=$2;shift 2
             ;;
-        h) help
+        h) usage
             exit 0
+            ;;
+        --) shift;break
             ;;
     esac
 done
