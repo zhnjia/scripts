@@ -4,7 +4,10 @@
 
 usage() {
     cat <<EOF
-testshengliu.sh [-m] [-n <counts>] [-w <time>] [-d <dir>] [-e <web page>] [-t <path of tcpdump] [-s <stop>]
+$0 [-m] [-n <counts>] [-w <time>] [-d <dir>] [-e <web page>] [-t <path of tcpdump] [-s <stop>]
+
+example:
+    $0 -n 200 -w 5 -d test -t /data/local/tmp
 
 OPTIONS
     -n counts       total times to visit web page
@@ -58,7 +61,7 @@ while true; do
             ;;
         --demo) demo=$2;shift 2
             ;;
-        h) usage
+        -h) usage
             exit 0
             ;;
         --) shift;break
