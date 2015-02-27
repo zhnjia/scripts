@@ -83,21 +83,22 @@ do
     if [ "$ptl" = "http" ];then
         tshark -r $f -R "http.request.full_uri == \"http\://${url}\"" \
             -T fields -e tcp.stream 2> /dev/null \
-            | xargs -I '{}' tshark -r $f -R 'frame.number == 1 or (tcp.stream == {} and http)' 2> /dev/null \
+            | xargs -I '{}' tshark -r $f -T fields -e frame.time_relative -R 'frame.number == 1 or (tcp.stream == {} and http)' 2> /dev/null \
             | head -n 3 > $tf
     elif [ "$ptl" = "spdy" ];then
         si=$(tshark -r $f -d tcp.port==${port},spdy \
             -R "spdy.header.value == \"${url%%/*}\" and spdy.header.value == \"/${url#*/}\"" \
             -T fields -e spdy.streamid 2> /dev/null )
         [ -z "$si" ] && continue
-        tshark -r $f -d tcp.port==${port},spdy \
+        tshark -r $f -d tcp.port==${port},spdy -T fields -e frame.time_relative \
             -R "frame.number == 1 or (spdy.streamid == $si and (spdy.type == 1 or spdy.type == 2))" 2> /dev/null > $tf
     fi
     if [ $(wc -l < $tf) -lt 3 ];then
         missed $f
+        i=$(expr $i + 1)
         continue
     else
-        value=$(awk -v mx=$max 'NR==2 {st=$2};END {split(FILENAME,fn,"."); if ($2 != st && $2-st < mx) {printf("%f\t%s",$2-st,fn[3])}}' $tf)
+        value=$(awk -v mx=$max 'NR==2 {st=$1};END {split(FILENAME,fn,"."); if ($1 != st && $1-st < mx) {printf("%f\t%s",$1-st,fn[3])}}' $tf)
         if [ $detial -eq 1 ];then
             echo $value | tee -a $rt
         else
@@ -107,6 +108,11 @@ do
     fi
     i=$(expr $i + 1)
 done
+
+if [ ! -e $rt ];then
+    echo "lost: 100%"
+    exit 0
+fi
 
 sed -i '/^$/d' $rt
 awk -v nrs=$(echo "scale=2;$nores * 100 / ${total}" | bc) '{ sum+=$1;vl[NR]=$1 }
