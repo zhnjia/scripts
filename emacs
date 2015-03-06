@@ -2,6 +2,7 @@
 ;;(menu-bar-mode -1)
 (scroll-bar-mode -1)
 (column-number-mode 1)
+(setq auto-save-default nil)
 (setq inhibit-startup-message t)
 (global-hl-line-mode 1)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
@@ -12,6 +13,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(column-number-mode t)
  '(cscope-close-window-after-select t)
  '(cscope-indexer-suffixes
    (quote
@@ -31,7 +33,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "unknown" :family "Monaco")))))
+ '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "unknown" :family "Ubuntu Mono")))))
 
 (setq package-user-dir "~/.emacs.d/elpa/")
 (package-initialize)
