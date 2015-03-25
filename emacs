@@ -1,5 +1,5 @@
 (tool-bar-mode -1)
-;;(menu-bar-mode -1)
+;(menu-bar-mode -1)
 (scroll-bar-mode -1)
 (column-number-mode 1)
 (setq auto-save-default nil)
@@ -18,14 +18,16 @@
  '(cscope-indexer-suffixes
    (quote
     ("*.[chly]" "*.[ch]xx" "*.[ch]pp" "*.cc" "*.hh" "*.java")))
+ '(cursor-type (quote bar))
  '(custom-safe-themes
    (quote
     ("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" default)))
  '(ecb-options-version "2.40")
  '(frame-background-mode (quote dark))
+ '(helm-autoresize-max-height 30)
  '(helm-gtags-auto-update t)
+ '(helm-gtags-prefix-key "g")
  '(helm-gtags-suggested-key-mapping t)
- '(helm-gtags-prefix-key "\C-cg")
  '(send-mail-function (quote smtpmail-send-it))
  '(smtpmail-smtp-server "smtp.oupeng.com")
  '(smtpmail-smtp-service 25)
@@ -52,10 +54,6 @@
 ;;(require 'auto-complete-config)
 ;;(ac-config-default)
 
-(require 'projectile)
-(projectile-global-mode 1)
-(global-set-key [f5] 'projectile-find-file)
-
 ;;(require 'ecb)
 ;;(require 'sr-speedbar)
 
@@ -64,26 +62,42 @@
 
 ;;(require 'smex)
 (smex-initialize)
-(global-set-key (kbd "M-X") 'smex)
+(global-set-key (kbd "M-x") 'smex)
 ;;(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 ;;;; This is your old M-x
-(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
 
 ;;(require 'helm-config)
 (helm-mode 1)
-(global-set-key (kbd "M-x") 'helm-M-x)
+(global-set-key (kbd "\e \e") 'helm-M-x)
+(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+;;(global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 ;;(add-to-list 'helm-completing-read-handlers-alist '(switch-to-buffer . ido))
 ;;(add-to-list 'helm-completing-read-handlers-alist '(find-file . ido))
 (helm-autoresize-mode 1)
-(setq helm-M-x-fuzzy-match t)
+;;(setq helm-M-x-fuzzy-match t)
 ;; helm-gtags-prefix-key "C-c g"
 ;; helm-gtags-suggested-key-map t
 ;; )
+(require 'google-c-style)
+(add-hook 'c-mode-common-hook 'google-set-c-style)
+(add-hook 'c-mode-common-hook 'google-make-newline-indent)
+(add-hook 'c-mode-hook (lambda() (setq c-basic-offset 4)))
 (add-hook 'c-mode-hook 'helm-gtags-mode)
+(add-hook 'c-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
+(add-hook 'c++-mode-hook (lambda() (setq c-basic-offset 4)))
+(add-hook 'c++-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'java-mode-hook 'helm-gtags-mode)
+(add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
+(add-hook 'java-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 
+;;(require 'projectile)
+(projectile-global-mode 1)
+(setq projectile-completion-system 'helm)
+(helm-projectile-on)
+;;(global-set-key [f5] 'projectile-find-file)
+(global-set-key (kbd "C-*") 'helm-swoop)
 ;;company mode
 (global-company-mode)
 ;;(global-set-key "\t" 'company-complete-common)
@@ -107,10 +121,12 @@
 ;;(evil-leader/set-key "o" 'evil-jump-backward)
 ;;(evil-leader/set-key "i" 'evil-jump-forward)
 ;;
-;;;;(require 'evil)
+
+(add-to-list 'load-path "~/.emacs.d/evil")
+(require 'evil)
 ;;(evil-mode 1)
 
-(setq ido-enable-flex-matching t)
+;;(setq ido-enable-flex-matching t)
 
 (yas-global-mode 1)
 
@@ -137,3 +153,4 @@
 	  (indent-for-tab-command)))))
 
 (global-set-key [tab] 'tab-indent-or-complete)
+(put 'Info-edit 'disabled nil)
