@@ -1,10 +1,14 @@
 (tool-bar-mode -1)
+(setq-default indent-tabs-mode nil)
+(electric-pair-mode 1)
 ;(menu-bar-mode -1)
+(global-superword-mode)
 (scroll-bar-mode -1)
 (column-number-mode 1)
 (setq auto-save-default nil)
 (setq inhibit-startup-message t)
 (global-hl-line-mode 1)
+(global-set-key (kbd "<apps>") 'helm-execute-extended-command)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")))
 
@@ -42,55 +46,28 @@
 (setq package-user-dir "~/.emacs.d/elpa/")
 (package-initialize)
 
-;;(add-to-list 'load-path "~/.emacs.d/plugin")
-;;(require 'linum)
 (global-linum-mode 1)
-;;(setq linum-format "%d ")
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/emacs-color-theme-solarized")
 (load-theme 'solarized-dark t)
 
-;;(add-to-list 'load-path "~/.emacs.d/auto-complete")
-;;(require 'auto-complete-config)
-;;(ac-config-default)
-
-;;(require 'ecb)
-;;(require 'sr-speedbar)
-
-;;(require 'xcscope)
-;;(add-hook 'java-mode-hook (lambda () (cscope-minor-mode)))
-
-;;(require 'smex)
-(smex-initialize)
-(global-set-key (kbd "M-x") 'smex)
-;;(global-set-key (kbd "M-X") 'smex-major-mode-commands)
-;;;; This is your old M-x
-
-;;(require 'helm-config)
 (helm-mode 1)
 (global-set-key (kbd "\e \e") 'helm-M-x)
-(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
-;;(global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
-;;(add-to-list 'helm-completing-read-handlers-alist '(switch-to-buffer . ido))
-;;(add-to-list 'helm-completing-read-handlers-alist '(find-file . ido))
 (helm-autoresize-mode 1)
-;;(setq helm-M-x-fuzzy-match t)
-;; helm-gtags-prefix-key "C-c g"
-;; helm-gtags-suggested-key-map t
-;; )
+
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
 (add-hook 'c-mode-common-hook 'google-make-newline-indent)
 (add-hook 'c-mode-hook (lambda() (setq c-basic-offset 4)))
 (add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
+;(add-hook 'c-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
 (add-hook 'c++-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'c++-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
+;(add-hook 'c++-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'java-mode-hook 'helm-gtags-mode)
 (add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'java-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
+;(add-hook 'java-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 
 ;;(require 'projectile)
 (projectile-global-mode 1)
@@ -99,8 +76,7 @@
 ;;(global-set-key [f5] 'projectile-find-file)
 (global-set-key (kbd "C-*") 'helm-swoop)
 ;;company mode
-(global-company-mode)
-;;(global-set-key "\t" 'company-complete-common)
+(add-hook 'after-init-hook 'global-company-mode)
 
 ;;(add-to-list 'load-path "~/.emacs.d/evil")
 ;;(add-to-list 'load-path "~/.emacs.d/evil-leader")
@@ -125,8 +101,6 @@
 (add-to-list 'load-path "~/.emacs.d/evil")
 (require 'evil)
 ;;(evil-mode 1)
-
-;;(setq ido-enable-flex-matching t)
 
 (yas-global-mode 1)
 
@@ -154,3 +128,17 @@
 
 (global-set-key [tab] 'tab-indent-or-complete)
 (put 'Info-edit 'disabled nil)
+
+(window-numbering-mode)
+
+(global-set-key (kbd "C-%") 'match-paren)
+ (defun match-paren (arg)
+   "Go to the matching paren if on a paren; otherwise insert %."
+   (interactive "p")
+   (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+         ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+         (t (self-insert-command (or arg 1)))))
+
+(defalias 'yes-or-no-p 'y-or-n-p)
+(defalias 'rb 'revert-buffer)
+(defalias 'hgg 'helm-git-grep-from-here)
