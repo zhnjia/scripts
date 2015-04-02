@@ -89,7 +89,7 @@ main() {
 
         sleep 1s
         if [ $demo -eq 1 ];then
-            adb shell am start -n com.oupeng.android.turboexample/com.oupeng.android.turboexample.MainActivity -d 'url-http://m.baidu.com'
+            adb shell am start -n com.oupeng.android.turboexample/com.oupeng.android.turboexample.MainActivity -d ${wb}
         else
             adb shell am start -n com.android.browser/com.android.browser.BrowserActivity
             sleep 2s

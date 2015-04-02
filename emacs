@@ -18,15 +18,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
- '(cscope-close-window-after-select t)
- '(cscope-indexer-suffixes
-   (quote
-    ("*.[chly]" "*.[ch]xx" "*.[ch]pp" "*.cc" "*.hh" "*.java")))
  '(cursor-type (quote bar))
  '(custom-safe-themes
    (quote
     ("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" default)))
- '(ecb-options-version "2.40")
  '(frame-background-mode (quote dark))
  '(helm-autoresize-max-height 30)
  '(helm-gtags-auto-update t)
@@ -68,6 +63,7 @@
 (add-hook 'java-mode-hook 'helm-gtags-mode)
 (add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
 ;(add-hook 'java-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
+(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
 ;;(require 'projectile)
 (projectile-global-mode 1)
