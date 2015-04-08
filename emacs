@@ -138,3 +138,4 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (defalias 'rb 'revert-buffer)
 (defalias 'hgg 'helm-git-grep-from-here)
+(defalias 'tw 'delete-trailing-whitespace)
