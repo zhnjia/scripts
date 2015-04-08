@@ -56,14 +56,16 @@
 (add-hook 'c-mode-common-hook 'google-make-newline-indent)
 (add-hook 'c-mode-hook (lambda() (setq c-basic-offset 4)))
 (add-hook 'c-mode-hook 'helm-gtags-mode)
-;(add-hook 'c-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
 (add-hook 'c++-mode-hook (lambda() (setq c-basic-offset 4)))
-;(add-hook 'c++-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'java-mode-hook 'helm-gtags-mode)
 (add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
-;(add-hook 'java-mode-hook (lambda() (modify-syntax-entry ?_ "w")))
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'prog-mode-hook 'semantic-mode)
+(add-hook 'prog-mode-hook 'yas-minor-mode)
+
+(setq helm-semantic-fuzzy-match t
+      helm-imenu-fuzzy-match t)
 
 ;;(require 'projectile)
 (projectile-global-mode 1)
@@ -97,8 +99,6 @@
 (add-to-list 'load-path "~/.emacs.d/evil")
 (require 'evil)
 ;;(evil-mode 1)
-
-(yas-global-mode 1)
 
 (defun check-expansion ()
   (save-excursion
