@@ -46,33 +46,33 @@
 (add-to-list 'custom-theme-load-path "~/.emacs.d/emacs-color-theme-solarized")
 (load-theme 'solarized-dark t)
 
-(helm-mode 1)
-(global-set-key (kbd "\e \e") 'helm-M-x)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-(helm-autoresize-mode 1)
+;(helm-mode 1)
+;(global-set-key (kbd "\e \e") 'helm-M-x)
+;(global-set-key (kbd "C-x C-f") 'helm-find-files)
+;(helm-autoresize-mode 1)
 
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
 (add-hook 'c-mode-common-hook 'google-make-newline-indent)
 (add-hook 'c-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook 'helm-gtags-mode)
+;(add-hook 'c-mode-hook 'helm-gtags-mode)
+;(add-hook 'c++-mode-hook 'helm-gtags-mode)
 (add-hook 'c++-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'java-mode-hook 'helm-gtags-mode)
+;(add-hook 'java-mode-hook 'helm-gtags-mode)
 (add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 (add-hook 'prog-mode-hook 'semantic-mode)
 (add-hook 'prog-mode-hook 'yas-minor-mode)
 
-(setq helm-semantic-fuzzy-match t
-      helm-imenu-fuzzy-match t)
+;(setq helm-semantic-fuzzy-match t
+;      helm-imenu-fuzzy-match t)
 
 ;;(require 'projectile)
 (projectile-global-mode 1)
-(setq projectile-completion-system 'helm)
-(helm-projectile-on)
+;(setq projectile-completion-system 'helm)
+;(helm-projectile-on)
 ;;(global-set-key [f5] 'projectile-find-file)
-(global-set-key (kbd "C-*") 'helm-swoop)
+;(global-set-key (kbd "C-*") 'helm-swoop)
 ;;company mode
 (add-hook 'after-init-hook 'global-company-mode)
 
