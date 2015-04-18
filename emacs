@@ -51,12 +51,21 @@
 (setq ido-enable-flex-matching t)
 (setq ido-case-fold t)
 
+(global-set-key (kbd "M-<ESC>") 'smex)
+
 (helm-mode 1)
-(global-set-key (kbd "M-<ESC>") 'helm-M-x)
-;(global-set-key (kbd "C-x C-f") 'helm-find-files)
+
+(global-set-key (kbd "C-x c i") 'helm-semantic-or-imenu)
+(global-set-key (kbd "C-*") 'occur)
+(global-set-key (kbd "M-s o") 'helm-occur)
 (helm-autoresize-mode 1)
 (add-to-list 'helm-completing-read-handlers-alist '(switch-to-buffer . ido))
 (add-to-list 'helm-completing-read-handlers-alist '(find-file . ido))
+(add-to-list 'helm-completing-read-handlers-alist '(execute-extended-command . ido))
+(add-to-list 'helm-completing-read-handlers-alist '(dired . ido))
+(add-to-list 'helm-completing-read-handlers-alist '(dired-create-directory . ido))
+(add-to-list 'helm-completing-read-handlers-alist '(dired-do-rename . ido))
+(add-to-list 'helm-completing-read-handlers-alist '(dabbrev-completion . ido))
 
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
@@ -69,7 +78,8 @@
 (add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 (add-hook 'prog-mode-hook 'semantic-mode)
-(add-hook 'prog-mode-hook 'yas-minor-mode)
+(add-hook 'prog-mode-hook 'yas-global-mode)
+(add-hook 'prog-mode-hook 'global-flycheck-mode)
 
 (setq helm-semantic-fuzzy-match t
       helm-imenu-fuzzy-match t)
@@ -142,4 +152,8 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (defalias 'rb 'revert-buffer)
 (defalias 'hgg 'helm-git-grep-from-here)
+(defalias 'hpg 'helm-projectile-grep)
 (defalias 'tw 'delete-trailing-whitespace)
+(defalias 'ho 'helm-occur)
+(defalias 'hsi 'helm-semantic-or-imenu)
+(global-set-key (kbd "C-c t w") 'delete-trailing-whitespace)
