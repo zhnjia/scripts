@@ -66,6 +66,7 @@
 (add-to-list 'helm-completing-read-handlers-alist '(dired-create-directory . ido))
 (add-to-list 'helm-completing-read-handlers-alist '(dired-do-rename . ido))
 (add-to-list 'helm-completing-read-handlers-alist '(dabbrev-completion . ido))
+(add-to-list 'helm-completing-read-handlers-alist '(kill-buffer . ido))
 
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
@@ -157,3 +158,9 @@
 (defalias 'ho 'helm-occur)
 (defalias 'hsi 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c t w") 'delete-trailing-whitespace)
+
+(global-whitespace-mode)
+(setq whitespace-style
+ '(face trailing tabs lines lines-tail empty
+  space-after-tab space-before-tab))
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
