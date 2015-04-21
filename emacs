@@ -18,7 +18,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
- '(cursor-type (quote bar))
+ ;;'(cursor-type (quote bar))
  '(custom-safe-themes
    (quote
     ("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" default)))
@@ -81,6 +81,7 @@
 (add-hook 'prog-mode-hook 'semantic-mode)
 (add-hook 'prog-mode-hook 'yas-global-mode)
 (add-hook 'prog-mode-hook 'global-flycheck-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
 (setq helm-semantic-fuzzy-match t
       helm-imenu-fuzzy-match t)
@@ -89,30 +90,29 @@
 ;(setq projectile-completion-system 'helm)
 ;(helm-projectile-on)
 
-(add-hook 'after-init-hook 'global-company-mode)
-
-;;(add-to-list 'load-path "~/.emacs.d/evil")
-;;(add-to-list 'load-path "~/.emacs.d/evil-leader")
-;;(require 'evil-leader)
-;;(global-evil-leader-mode)
-;;(evil-leader/set-leader ",")
-;;(evil-leader/set-key "p" 'projectile-find-file)
-;;(evil-leader/set-key "f" 'helm-semantic-or-imenu)
-;;(evil-leader/set-key "w" 'helm-swoop)
-;;(evil-leader/set-key "b" 'helm-buffers-list)
-;;(evil-leader/set-key "d" 'helm-gtags-find-tag)
-;;(evil-leader/set-key "g" 'helm-gtags-find-tag-from-here)
-;;(evil-leader/set-key "r" 'helm-gtags-find-rtag)
-;;(evil-leader/set-key "s" 'helm-gtags-find-symbol)
-;;(evil-leader/set-key "l" 'helm-gtags-select)
-;;(evil-leader/set-key "c" 'helm-gtags-dwim)
-;;(evil-leader/set-key "t" 'helm-gtags-pop-stack)
-;;(evil-leader/set-key "o" 'evil-jump-backward)
-;;(evil-leader/set-key "i" 'evil-jump-forward)
-;;
 
 (add-to-list 'load-path "~/.emacs.d/evil")
-(require 'evil)
+(add-to-list 'load-path "~/.emacs.d/evil-leader")
+(require 'evil-leader)
+(global-evil-leader-mode)
+(evil-mode 1)
+(evil-leader/set-leader ",")
+;(evil-leader/set-key "p" 'projectile-switch-project)
+;(evil-leader/set-key "f" 'projectile-find-file)
+(evil-leader/set-key "t" 'helm-semantic-or-imenu)
+;(evil-leader/set-key "b" 'switch-to-buffer)
+(evil-leader/set-key "d" 'helm-gtags-find-tag)
+(evil-leader/set-key "g" 'helm-gtags-find-tag-from-here)
+(evil-leader/set-key "r" 'helm-gtags-find-rtag)
+(evil-leader/set-key "s" 'helm-gtags-find-symbol)
+(evil-leader/set-key "l" 'helm-gtags-select)
+(evil-leader/set-key "c" 'helm-gtags-dwim)
+;(evil-leader/set-key "t" 'helm-gtags-pop-stack)
+(evil-leader/set-key "o" 'evil-jump-backward)
+(evil-leader/set-key "i" 'evil-jump-forward)
+
+;;(add-to-list 'load-path "~/.emacs.d/evil")
+;;(require 'evil)
 ;;(evil-mode 1)
 
 (defun check-expansion ()
@@ -134,11 +134,13 @@
     (if (or (not yas/minor-mode)
             (null (do-yas-expand)))
 	(if (check-expansion)
+            (company-begin-backend 'company-gtags)
 	    (company-complete-common)
 	  (indent-for-tab-command)))))
 
 (global-set-key [tab] 'tab-indent-or-complete)
-(put 'Info-edit 'disabled nil)
+;;(put 'Info-edit 'disabled nil)
+(add-hook 'after-init-hook 'global-company-mode)
 
 (window-numbering-mode)
 
