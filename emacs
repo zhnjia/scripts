@@ -159,6 +159,7 @@
 (defalias 'tw 'delete-trailing-whitespace)
 (defalias 'ho 'helm-occur)
 (defalias 'hsi 'helm-semantic-or-imenu)
+(defalias 'sir 'string-insert-rectangle)
 (global-set-key (kbd "C-c t w") 'delete-trailing-whitespace)
 
 (global-whitespace-mode)
