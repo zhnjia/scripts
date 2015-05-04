@@ -1,5 +1,6 @@
 (tool-bar-mode -1)
 (setq-default indent-tabs-mode nil)
+(setq-default fill-column 80)
 (electric-pair-mode 1)
 ;(menu-bar-mode -1)
 (global-superword-mode)
@@ -82,6 +83,9 @@
 (add-hook 'prog-mode-hook 'yas-global-mode)
 (add-hook 'prog-mode-hook 'global-flycheck-mode)
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+(add-hook 'prog-mode-hook 'fci-mode)
+
+(setq fci-rule-color "darkred")
 
 (setq helm-semantic-fuzzy-match t
       helm-imenu-fuzzy-match t)
@@ -164,6 +168,5 @@
 
 (global-whitespace-mode)
 (setq whitespace-style
- '(face trailing tabs lines lines-tail empty
-  space-after-tab space-before-tab))
+ '(face trailing tabs empty spaces space-after-tab space-before-tab newline indentation))
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
