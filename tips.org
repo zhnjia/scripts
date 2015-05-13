@@ -1,0 +1,150 @@
+* java
+** decompile android apk
+   #+BEGIN_SRC shell
+     $ unzip app.apk -d app
+     $ cd app; dex2jar.sh ./classes.dex
+     $ unzip ./classes_dex2jar.jar -d source
+     $ jd-gui&
+   #+END_SRC
+
+* http
+** content-encoding
+ 1. rfc2616 规定传输的内容可以进行压缩传输，content-length为压缩后的文件大小
+ 2. 其中content-encoding可以指定4种值：
+    1) gzip, 用gnu zip格式压缩
+    2) compress, 采用unix的文件压缩程序
+    3) deflate, 采用zlib格式压缩
+    4) identity, 没有编码，如果没有content-encoding, 就默认为这种方式
+** filename
+ 1. filename最早出现在rfc1806 中对"Content-Dispositon" 的定义：
+    #+BEGIN_VERSE
+    filename-parm := "filename" "=" value;
+    #+END_VERSE
+    value的取值根据rfc822 和rfc1521 定义。
+ 2. 之后rfc2626(1999年http1.1标准），第19.5.1节介绍了"Content-Disposition"的定义[[[http://tools.ietf.org/html/rfc2616#section-19.5.1][rfc2616#section-19.5.1]]]
+    #+BEGIN_VERSE
+    content-disposition = "Content-Disposition" ":"
+    disposition-type *( ";" disposition-parm )
+    disposition-type = "attachment" | disp-extension-token
+    disposition-parm = filename-parm | disp-extension-parm
+    filename-parm = "filename" "=" quoted-string
+    disp-extension-token = token
+    disp-extension-parm = token "=" ( token | quoted-string )
+    #+END_VERSE
+   其中就定义了filename,标准中指明filename不允许指定文件路径，仅作为完整文件名的最
+   后一部分。还有一个例子：Content-Disposition: attachment; filename="fname.ext"。
+   由此最早filename应该是"＝"后用（"）包含起来的ASCII码字符串，ISO-8859-1以外的字符
+   应根据rfc2047 进行转换转换规则为filename= "=?" charset "?" encoding "?" encoded-text "?="。
+ 3. rfc2231 对rfc2047 的转换规则添加了扩展, 支持filename*= charset "'" [language] "'" encoded-text(percent-encode);
+   （根据网上反馈资料，为了适配IE浏览器而采用的是混合模式，即：filename="encoded-text")
+ 4. 随着网络的发展，2011年rfc6266 对Content-Disposition 进行了规范。rfc6266指明：
+    #+BEGIN_VERSE
+    filename-parm = "filename" "=" value | "filename*" "=" ext-value
+    #+END_VERSE
+    - 如果使用filename ＝ value, value使用rfc2616的定义
+    - 如果使用filename *＝ ext-value, ext-value使用rfc5987的定义，rfc5987 规定采用rfc2231 的转换规则
+
+ 5. 总结
+   filename可能出现四种编码格式：
+    - rfc2616: filename="filename"
+    - rfc2047: filename="=?UTF-8?encoding?encoded-filename?="
+    - rfc2231: filename*=UTF-8'[en]'percent-encoded-filename
+    - IE:      filename="percent-encoded-filename"!
+
+ 6. 算法
+   根据上述理论依据，以及参考android的guessfilename函数filename做如下解析：
+   #+BEGIN_SRC c++
+     if (Content-Disposition != null) {
+         if (get(filename*) != null) {
+             rfc2231_decode();
+         } else if (get(filename) != null) {
+             if (rfc2047_decode() == ok) return;
+             if (IE_decode() == ok) return;
+             rfc2616_decode();
+         }
+     } else {
+         get_file_name_from_url();
+     }
+     if (mimetype != null) {
+         append_extention_to_filename();
+     }
+   #+END_SRC
+
+* ssh
+** 上传本地key到服务器
+#+BEGIN_SRC shell
+  ssh-keygen -t  rsa
+  ssh-copy-id -i ~/.ssh/id_rsa.pub  root@192.168.0.3
+#+end_src
+* google host
+** [[https://github.com/racaljk/hosts/blob/master/hosts][github]]
+* linux
+** system optimise
+*** free memery cache
+sync & echo 3 > /proc/sys/vm/drop_caches
+** keyboard
+*** swap CAPSLOCK and CTRL
+1. setxkbmap -option "ctrl:swapcaps"
+2. xmodmap
+#+BEGIN_SRC sh
+  !
+  ! Swap Caps_Lock and Control_L
+  !
+  remove Lock = Caps_Lock
+  remove Control = Control_L
+  keysym Control_L = Caps_Lock
+  keysym Caps_Lock = Control_L
+  add Lock = Caps_Lock
+  add Control = Control_L
+#+END_SRC
+*** make CAPSLOCK an additional CTRL
+setxkbmap -option "ctrl:nocaps"
+** network
+*** dns cache cleanup
+sudo /etc/init.d/dns-clean restart
+*** dns nameserver
+add nameservers to /etc/network/interfaces #only 3
+add nameservers to /etc/resolvconf/resolv.conf.d/tail
+* emacs
+** key
+*** Blank
+1. 'C-x C-o' :delete-blank-lines [Delete extra blank lines between paragraphs]
+*** File mode
+**** Open file in c++-mode
+1. put "// -*-c++-*-" at the top of the file
+2. (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+*** lines
+1. 'C-o' :open-line [Insert a blank line after the cursor]
+2. 'C-M-o' :split-line [new line, and align it at same column of cursor]
+*** Indent
+1. 'M-/^/' :delete-indentation [join two line, and delete the front indentation of cursor]
+2. 'C-M \' :indent-region [indents each line in the “usual” way]
+3. '<TAB>' :indent-region
+4. 'C-x <TAB>' :indent-rigidly
+5. 'M-m' :back-to-indentation
+*** Spaces
+1. 'M-\' :delete-horizontal-space [deletes all spaces and tabs around the cursor]
+*** upcase/downcase
+1. 'M-l' :downcase-word [Convert following word to lower case]
+2. 'M-u' :upcase-word [Convert following word to upper case]
+3. 'M-c' :capitalize-word [Capitalize the following word]
+4. 'C-x C-l' :downcase-region [Convert region to lower case]
+5. 'C-x C-u' :upcase-region [Convert region to upper case]
+*** align
+1. :align-current
+2. :align-regexp [lets you align a region by a regex in complex ways]
+*** rectangles
+1. 'C-x r k' :kill-rectangle
+2. 'C-x r d' :delete-rectangle
+3. 'C-x r y' :yank-rectangle
+4. 'C-x r o' :open-rectangle [Insert blank space to fill the space of the region-rectangle]
+5. 'C-x r c' :clear-rectangle
+6. 'M-x delete-whitespace-rectangle'
+7. 'C-x r t' /string/ <RET> :string-rectangle [Replace rectangle contents with string on each line]
+8. 'M-x string-insert-rectangle <RET>' /string/ <RET> [Insert string on each line of the rectangle.]
+9. '[C-u] C-x r N' :rectangle-number-lines
+*** org mode
+1. 'C-c '(single quote)' : [edit included source code]
+*** Search
+1. 'C-M-s' : [regex i-search]
+2. 'M-c' : [Typing M-c within an incremental search toggles the case sensitivity of that search.]
