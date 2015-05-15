@@ -1,8 +1,8 @@
+; -*-lisp-*-
 (tool-bar-mode -1)
 (setq-default indent-tabs-mode nil)
 (setq-default fill-column 80)
 (electric-pair-mode 1)
-;(menu-bar-mode -1)
 (global-superword-mode)
 (scroll-bar-mode -1)
 (column-number-mode 1)
@@ -47,8 +47,6 @@
 (add-to-list 'custom-theme-load-path "~/.emacs.d/emacs-color-theme-solarized")
 (load-theme 'solarized-dark t)
 
-;(ido-mode t)
-;(ido-everywhere 1)
 (setq ido-enable-flex-matching t)
 (setq ido-case-fold t)
 
@@ -60,30 +58,37 @@
 (global-set-key (kbd "C-*") 'occur)
 (global-set-key (kbd "M-s o") 'helm-occur)
 (helm-autoresize-mode 1)
-(add-to-list 'helm-completing-read-handlers-alist '(switch-to-buffer . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(find-file . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(execute-extended-command . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(dired . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(dired-create-directory . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(dired-do-rename . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(dabbrev-completion . ido))
-(add-to-list 'helm-completing-read-handlers-alist '(kill-buffer . ido))
+
+(setq helm-alist-list '((switch-to-buffer . ido)
+                        (find-file . ido)
+                        (dired . ido)
+                        (execute-extended-command . ido)
+                        (dired-create-directory . ido)
+                        (dired-do-rename . ido)
+                        (dabbrev-completion . ido)
+                        (kill-buffer . ido)))
+(setq helm-completing-read-handlers-alist
+      (append helm-completing-read-handlers-alist helm-alist-list))
 
 (require 'google-c-style)
-(add-hook 'c-mode-common-hook 'google-set-c-style)
-(add-hook 'c-mode-common-hook 'google-make-newline-indent)
-(add-hook 'c-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'java-mode-hook 'helm-gtags-mode)
-(add-hook 'java-mode-hook (lambda() (setq c-basic-offset 4)))
-(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-(add-hook 'prog-mode-hook 'semantic-mode)
-(add-hook 'prog-mode-hook 'yas-global-mode)
-(add-hook 'prog-mode-hook 'global-flycheck-mode)
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-(add-hook 'prog-mode-hook 'fci-mode)
+(add-hook 'c-mode-common-hook
+  (lambda()
+    (subword-mode)
+    (google-set-c-style)
+    (google-make-newline-indent)
+    (setq c-basic-offset 4)))
+
+(add-hook 'java-mode-hook '(setq fill-column 100))
+
+(add-hook 'prog-mode-hook
+  (lambda()
+    (helm-gtags-mode)
+    (rainbow-delimiters-mode)
+    (semantic-mode)
+    (yas-global-mode)
+    (global-flycheck-mode)
+    (flyspell-prog-mode)
+    (fci-mode)))
 
 (setq fci-rule-color "darkred")
 
