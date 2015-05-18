@@ -54,9 +54,7 @@
 
 (helm-mode 1)
 
-(global-set-key (kbd "C-x c i") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-*") 'occur)
-(global-set-key (kbd "M-s o") 'helm-occur)
 (helm-autoresize-mode 1)
 
 (setq helm-alist-list '((switch-to-buffer . ido)
@@ -69,6 +67,10 @@
                         (kill-buffer . ido)))
 (setq helm-completing-read-handlers-alist
       (append helm-completing-read-handlers-alist helm-alist-list))
+(global-set-key (kbd "C-c h g g") 'helm-git-grep-from-her)
+(global-set-key (kbd "C-c h p g") 'helm-projectile-grep)
+(global-set-key (kbd "C-c h s i") 'helm-semantic-or-imenu)
+(global-set-key (kbd "C-c h o") 'helm-occur)
 
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook
@@ -162,14 +164,9 @@
          (t (self-insert-command (or arg 1)))))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
-(defalias 'rb 'revert-buffer)
-(defalias 'hgg 'helm-git-grep-from-here)
-(defalias 'hpg 'helm-projectile-grep)
-(defalias 'tw 'delete-trailing-whitespace)
-(defalias 'ho 'helm-occur)
-(defalias 'hsi 'helm-semantic-or-imenu)
-(defalias 'sir 'string-insert-rectangle)
+(global-set-key (kbd "C-c r b") 'revert-buffer)
 (global-set-key (kbd "C-c t w") 'delete-trailing-whitespace)
+(global-set-key (kbd "C-x r i") 'string-insert-rectangle)
 
 (global-whitespace-mode)
 (setq whitespace-style
