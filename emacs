@@ -102,30 +102,9 @@
 ;(setq projectile-completion-system 'helm)
 ;(helm-projectile-on)
 
-
 (add-to-list 'load-path "~/.emacs.d/evil")
-(add-to-list 'load-path "~/.emacs.d/evil-leader")
-(require 'evil-leader)
-(global-evil-leader-mode)
+(require 'evil)
 (evil-mode 1)
-(evil-leader/set-leader ",")
-;(evil-leader/set-key "p" 'projectile-switch-project)
-;(evil-leader/set-key "f" 'projectile-find-file)
-(evil-leader/set-key "t" 'helm-semantic-or-imenu)
-;(evil-leader/set-key "b" 'switch-to-buffer)
-(evil-leader/set-key "d" 'helm-gtags-find-tag)
-(evil-leader/set-key "g" 'helm-gtags-find-tag-from-here)
-(evil-leader/set-key "r" 'helm-gtags-find-rtag)
-(evil-leader/set-key "s" 'helm-gtags-find-symbol)
-(evil-leader/set-key "l" 'helm-gtags-select)
-(evil-leader/set-key "c" 'helm-gtags-dwim)
-;(evil-leader/set-key "t" 'helm-gtags-pop-stack)
-(evil-leader/set-key "o" 'evil-jump-backward)
-(evil-leader/set-key "i" 'evil-jump-forward)
-
-;;(add-to-list 'load-path "~/.emacs.d/evil")
-;;(require 'evil)
-;;(evil-mode 1)
 
 (defun check-expansion ()
   (save-excursion
