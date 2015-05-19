@@ -67,10 +67,11 @@
                         (kill-buffer . ido)))
 (setq helm-completing-read-handlers-alist
       (append helm-completing-read-handlers-alist helm-alist-list))
-(global-set-key (kbd "C-c h g g") 'helm-git-grep-from-her)
+(global-set-key (kbd "C-c h g g") 'helm-git-grep-from-here)
 (global-set-key (kbd "C-c h p g") 'helm-projectile-grep)
 (global-set-key (kbd "C-c h s i") 'helm-semantic-or-imenu)
 (global-set-key (kbd "C-c h o") 'helm-occur)
+(global-set-key (kbd "C-c h r") 'helm-resume)
 
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook

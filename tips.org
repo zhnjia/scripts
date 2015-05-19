@@ -148,3 +148,7 @@ add nameservers to /etc/resolvconf/resolv.conf.d/tail
 *** Search
 1. 'C-M-s' : [regex i-search]
 2. 'M-c' : [Typing M-c within an incremental search toggles the case sensitivity of that search.]
+** packages
+*** update
+1. [list-packages]: press 'U' for all packages which can be upgraded, and key 'x' to do upgrading.
+2. [helm-list-elisp-packages]: 'M-U'
