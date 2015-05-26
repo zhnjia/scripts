@@ -152,3 +152,8 @@ add nameservers to /etc/resolvconf/resolv.conf.d/tail
 *** update
 1. [list-packages]: press 'U' for all packages which can be upgraded, and key 'x' to do upgrading.
 2. [helm-list-elisp-packages]: 'M-U'
+* sql
+** distinct
+1. select distinct(id) from table; [选择并去重]
+2. select count(distinct id) from table; [计算不重复的个数]
+3. select *,count(distinct id) from table group by id; [以id为临时主键选取数据]
