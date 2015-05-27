@@ -73,6 +73,7 @@
 (global-set-key (kbd "C-c h o") 'helm-occur)
 (global-set-key (kbd "C-c h r") 'helm-resume)
 
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook
   (lambda()
@@ -85,6 +86,7 @@
 
 (add-hook 'prog-mode-hook
   (lambda()
+    (local-set-key (kbd "C-c o") 'ff-find-other-file)
     (helm-gtags-mode)
     (rainbow-delimiters-mode)
     (semantic-mode)
