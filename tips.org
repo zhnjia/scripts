@@ -157,3 +157,7 @@ add nameservers to /etc/resolvconf/resolv.conf.d/tail
 1. select distinct(id) from table; [选择并去重]
 2. select count(distinct id) from table; [计算不重复的个数]
 3. select *,count(distinct id) from table group by id; [以id为临时主键选取数据]
+* wireshark
+** tshark
+1. analysis pcap file
+tshark -r ssl_capture.pcap -d tcp.port==4443,ssl -R "(tcp.dstport eq 4443 and tcp.flags.syn == 1) or (tcp.srcport eq 4443 and ssl.change_cipher_spec)" -T fields -e frame.time_relative 2> /dev/null
