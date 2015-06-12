@@ -107,6 +107,7 @@
 (add-to-list 'load-path "~/.emacs.d/evil")
 (require 'evil)
 (evil-mode 1)
+(setq-default evil-symbol-word-search t)
 
 (defun check-expansion ()
   (save-excursion
@@ -154,3 +155,42 @@
 (setq whitespace-style
  '(face trailing tabs empty spaces space-after-tab space-before-tab newline indentation))
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+(defun surround-with-parens ()
+  (interactive)
+  (save-excursion
+    (goto-char (region-beginning))
+    (insert "("))
+  (goto-char (region-end))
+  (insert ")"))
+
+(defun delete-surrounded-parens ()
+  (interactive)
+  (let ((beginning (region-beginning))
+        (end (region-end)))
+    (cond ((not (eq (char-after beginning) ?\())
+           (error "Character at region-begin is not an open-parenthesis"))
+          ((not (eq (char-before end) ?\)))
+           (error "Character at region-end is not a close-parenthesis"))
+          ((save-excursion
+             (goto-char beginning)
+             (forward-sexp)
+             (not (eq (point) end)))
+           (error "Those parentheses are not matched"))
+          (t (save-excursion
+               (goto-char end)
+               (delete-backward-char 1)
+               (goto-char beginning)
+               (delete-char 1))))))
+
+(defun surround (begin end open close)
+  "Put OPEN at START and CLOSE at END of the region.
+If you omit CLOSE, it will reuse OPEN."
+  (interactive  "r\nsStart: \nsEnd: ")
+  (when (string= close "")
+    (setq open close))
+  (save-excursion
+    (goto-char end)
+    (insert close)
+    (goto-char begin)
+    (insert open)))
