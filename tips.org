@@ -105,6 +105,8 @@ sudo /etc/init.d/dns-clean restart
 *** dns nameserver
 add nameservers to /etc/network/interfaces #only 3
 add nameservers to /etc/resolvconf/resolv.conf.d/tail
+*** vpn log
+tail -f /var/log/syslog
 * emacs
 ** key
 *** Blank
