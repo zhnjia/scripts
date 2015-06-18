@@ -64,6 +64,7 @@
                         (dired-create-directory . ido)
                         (dired-do-rename . ido)
                         (dabbrev-completion . ido)
+                        (diff . ido)
                         (kill-buffer . ido)))
 (setq helm-completing-read-handlers-alist
       (append helm-completing-read-handlers-alist helm-alist-list))

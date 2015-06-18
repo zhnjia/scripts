@@ -107,6 +107,8 @@ add nameservers to /etc/network/interfaces #only 3
 add nameservers to /etc/resolvconf/resolv.conf.d/tail
 *** vpn log
 tail -f /var/log/syslog
+** productivity
+1. paste [按列合并文件]
 * emacs
 ** key
 *** Blank
