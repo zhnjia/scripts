@@ -43,31 +43,34 @@ ZSH_THEME="pygmalion"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git autojump)
+plugins=(git autojump sudo colored-man colorize cp history debian emoji-clock emacs adb ant)
 
 source $ZSH/oh-my-zsh.sh
-set -o vi
-#set -o emacs
+#set -o vi
+set -o emacs
 
 eval `dircolors ~/soft_make/dircolors-solarized-master/dircolors.ansi-universal`
 
 # Customize to your needs...
-export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/usr/local/android_tools/android-sdk-linux_x86/platform-tools:/usr/local/android_tools/android-sdk-linux_x86/tools:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink
+export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/usr/local/android_tools/android-sdk-linux_x86/platform-tools:/usr/local/android_tools/android-sdk-linux_x86/tools:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink:/opt/wireshark-1.8.13/bin:/home/jiazhang/pkg/depot_tools:/home/jiazhang/pkg/go/bin
 
-export JAVA_HOME=/opt/java/jdk1.6.0_37
+export JAVA_HOME=/opt/java/jdk1.8.0_20
 export ANDROID_HOME=/opt/android_tools/android-sdk-linux_x86
 
 export CCACHE_DIR=/mnt/temp/CCACHE
 export ANDROID_SDK_DIR=/usr/local/android_tools/android-sdk-linux_x86
-export ANDROID_NDK_DIR=/usr/local/android_tools/android-ndk-r8b
+export ANDROID_NDK_DIR=/usr/local/android_tools/android-ndk-r10d
+export ANDROID_NDK=/usr/local/android_tools/android-ndk-r10d
 
-export ANDROID_TOOLCHAIN=/opt/android_tools/android-ndk-r8b/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86/bin
+export ANDROID_TOOLCHAIN=/opt/android_tools/android-ndk-r10d/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86/bin
 
 export CCACHE_COMPILERCHECK=content
 export COMPONENT_BUILD=NO
 export ICECC=YES ICECC_PREFIX=$HOME/pkg/icecc
 
 export FPATH=~/zshfuncs:$FPATH
+
+export CLUSTER=zj
 
 #bindkey -v
 bindkey "\eA" history-search-backward
@@ -85,8 +88,14 @@ alias gri="git rebase -i"
 alias a="adb"
 alias al="adb logcat -v time"
 alias alc="adb logcat -c"
-alias alg="adb logcat -v time | grep "
+alias alg="adb logcat -v time | grep"
+alias alsg="noglob adbloggrep"
+adbloggrep() {
+    adb logcat -v time -s $@
+}
 alias aleg="adb logcat -v time | egrep "
+
+alias tsharkspdy="tshark -d tcp.port==443,spdy -R spdy "
 
 alias m="minibuild"
 alias cm="ant clean; minibuild"
@@ -118,11 +127,7 @@ gviml () {
 
 alias gk="noglob gitkbr"
 gitkbr () {
-    if [ $# -eq 0 ];then
-        gitk -1000&
-    elif [ $# -eq 1 ];then
-        gitk $1 -1000&
-    fi
+    gitk -1000 $@ &
 }
 
 alias f="noglob findit"
@@ -185,9 +190,9 @@ gitFunc () {
             echo "a <file>:git add file"
             echo "q :exit"
             ;;
-        "l")  
+        "l")
             #less $(echo $files | se)
-            ;; 
+            ;;
     esac
 }
 
@@ -202,3 +207,13 @@ gitadd () {
 #    branch=${branch#ref: refs/heads/}
 #    git push $1 critic :r/jiazhang/${branch}
 #}
+
+alias em="noglob emacs_cmd"
+emacs_cmd () {
+    emacs $@ 2> /dev/null &
+}
+
+alias ec="noglob emacsclient_gui"
+emacsclient_gui () {
+    emacsclient -c $@ &
+}
