@@ -54,15 +54,7 @@ eval `dircolors ~/soft_make/dircolors-solarized-master/dircolors.ansi-universal`
 # Customize to your needs...
 export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/usr/local/android_tools/android-sdk-linux_x86/platform-tools:/usr/local/android_tools/android-sdk-linux_x86/tools:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink:/opt/wireshark-1.8.13/bin:/home/jiazhang/pkg/depot_tools:/home/jiazhang/pkg/go/bin
 
-export JAVA_HOME=/opt/java/jdk1.8.0_20
-export ANDROID_HOME=/opt/android_tools/android-sdk-linux_x86
-
 export CCACHE_DIR=/mnt/temp/CCACHE
-export ANDROID_SDK_DIR=/usr/local/android_tools/android-sdk-linux_x86
-export ANDROID_NDK_DIR=/usr/local/android_tools/android-ndk-r10d
-export ANDROID_NDK=/usr/local/android_tools/android-ndk-r10d
-
-export ANDROID_TOOLCHAIN=/opt/android_tools/android-ndk-r10d/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86/bin
 
 export CCACHE_COMPILERCHECK=content
 export COMPONENT_BUILD=NO
@@ -217,3 +209,5 @@ alias ec="noglob emacsclient_gui"
 emacsclient_gui () {
     emacsclient -c $@ &
 }
+
+source ~/.zshrc_custom

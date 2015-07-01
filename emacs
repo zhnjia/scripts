@@ -5,6 +5,7 @@
 (electric-pair-mode 1)
 (global-superword-mode)
 (scroll-bar-mode -1)
+(setq make-backup-files nil)
 (column-number-mode 1)
 (setq auto-save-default nil)
 (setq inhibit-startup-message t)
