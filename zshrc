@@ -43,7 +43,7 @@ ZSH_THEME="pygmalion"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git autojump sudo colored-man colorize cp history debian emoji-clock emacs adb ant)
+plugins=(git autojump sudo colored-man colorize cp history emoji-clock emacs adb ant)
 
 source $ZSH/oh-my-zsh.sh
 #set -o vi
@@ -52,7 +52,7 @@ set -o emacs
 eval `dircolors ~/soft_make/dircolors-solarized-master/dircolors.ansi-universal`
 
 # Customize to your needs...
-export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/usr/local/android_tools/android-sdk-linux_x86/platform-tools:/usr/local/android_tools/android-sdk-linux_x86/tools:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink:/opt/wireshark-1.8.13/bin:/home/jiazhang/pkg/depot_tools:/home/jiazhang/pkg/go/bin
+export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink:/opt/wireshark-1.8.13/bin:/home/jiazhang/pkg/depot_tools:/home/jiazhang/pkg/go/bin:/opt/android/android-sdk-linux_x86/tools
 
 export CCACHE_DIR=/mnt/temp/CCACHE
 
