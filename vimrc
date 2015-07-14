@@ -101,9 +101,9 @@ map <silent> <C-Insert> <ESC>"+y
 map <silent> <S-Insert> <ESC>"+p<ESC>
 
 " Ag
-let g:ag_highlight=1
+let g:ag_highlight = 1
 nmap <F3> :Ag <C-R>=expand("<cword>")<CR><CR>
-"nmap <C-F3> :grep - <C-R>=expand("<cword>")<CR><C-left><left>
+nmap <C-F3> :Ag<space>
 nmap <C-F3> :%s/<C-R>=expand("<cword>")<CR>/<C-R>=expand("<cword>")<CR>/gc<Left><Left><Left>
 
 " ultisnips
@@ -200,7 +200,7 @@ map <silent> <F4> :NERDTreeToggle<CR>
 let g:NERDTreeWinPos="right"
 let NERDTreeIgnore=['tags', 'cscope.in.out', 'cscope.files', 'cscope.out', 'cscope.po.out', 'GTAGS', 'GRTAGS', 'GPATH']
 
-autocmd BufReadPost * if &modifiable | NERDTreeFind | wincmd p | endif
+autocmd BufEnter *.* if &modifiable | NERDTreeFind | wincmd p | endif
 
 "**********************************************************************************
 "CtrlP"
@@ -286,7 +286,8 @@ let loaded_matchit = 1
 "let g:bufExplorerSortBy='name'       " Sort by the buffer's name.
 
 " syntastic
-let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 1
 
 " for my own code
 if filereadable(".etc/profile/vimrc")
@@ -297,9 +298,11 @@ endif
 let g:Gtags_Auto_Update = 1
 nmap gtu                       :! global -v -u && htags -v && echo -e "\nGtags and Htags updated."<CR>
 " GTags Find definition or reference of object under Cursor (depends on the context, see $ info global )
-nmap gtfc   :GtagsCursor<CR>
+"nmap gtfc   :GtagsCursor<CR>
+nmap gt   :GtagsCursor<CR>
 " GTags Find Reference to object under cursor
-nmap gtfr   :Gtags -r<CR><CR>
+"nmap gtfr   :Gtags -r<CR><CR>
+nmap gtr   :Gtags -r<CR><CR>
 " GTags List tags from current file
 nmap gtl    :Gtags -f %<CR>
 " GTags List all *.c files
