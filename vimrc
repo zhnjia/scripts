@@ -67,8 +67,6 @@ syntax on
 "solarized
 let g:solarized_termcolors=256
 
-"colorscheme desert
-"colorscheme rainbowNeon
 colorscheme solarized
 
 "**********************************************************************************
@@ -143,47 +141,10 @@ map <C-F5> Qmake<Space>
 "set csverb
 
 "**********************************************************************************
-"compile
-"map <F7> :make<CR>
-"nmap <silent> <F7> :call MyMake()<CR>
-
-"clang_complete
-"let g:clang_complete_copen=1 
-
-"**********************************************************************************
 "font
 set guifont=DejaVu\ Sans\ Mono\ 10
 "set guifont=Ubuntu\ Mono\ 12
 
-"**********************************************************************************
-"quickfix
-"let g:quickfixWindowStatus = 0
-"function OpenQuickfixWindow()
-"    if g:quickfixWindowStatus == 0
-"        let g:quickfixWindowStatus = 1
-"        exe 'copen'
-"    endif
-"endfunction
-"
-"function CloseQuickfixWindow()
-"    if g:quickfixWindowStatus == 1
-"        let g:quickfixWindowStatus = 0
-"        exe 'cclose'
-"    endif
-"endfunction
-"
-"function ToggleQuickfixWindow()
-"    if g:quickfixWindowStatus == 0
-"        let g:quickfixWindowStatus = 1
-"        exe 'copen'
-"    elseif g:quickfixWindowStatus == 1
-"        let g:quickfixWindowStatus = 0
-"        exe 'cclose'
-"    endif
-"endfunction
-
-"nmap <silent> <F8> :call ToggleQuickfixWindow()<CR>
-"nmap <silent> ge :call ToggleQuickfixWindow()<CR>
 nmap <silent> <C-F8> :cp<CR>
 nmap <silent> <F8> :cn<CR>
 
@@ -253,16 +214,6 @@ let g:Powerline_mode_S = 'S-L'
 let g:Powerline_mode_cs = 'S-B'
 
 "**********************************************************************************
-"insert bream log
-"function Breamlog()
-"    let line="Log.d(\"zjzjzj\", );"
-"    call setline(".", line)
-"endfunction
-
-"imap <silent> <c-l> <ESC>:call Breamlog()<CR>V=$hi
-"nmap <silent> <c-l> :call Breamlog()<CR>V=$hi
-
-"**********************************************************************************
 "errorformat
 "set errorformat=[my%.breamc]\ %f:%l:%c:\ error:\ %m
 
@@ -276,14 +227,9 @@ let g:Powerline_mode_cs = 'S-B'
 let loaded_matchit = 1
 
 "YouCompleteMe
-"let g:ycm_key_invoke_completion = '<C-S-Space>'
-"let g:ycm_key_list_select_completion = ['<C-TAB>', '<Down>']
-"let g:ycm_key_list_previous_completion = ['<C-S-TAB>', '<Up>']
-
-"""**********************************************************************************
-""BufExplorer
-"nmap <silent> <F9> :BufExplorer<CR>
-"let g:bufExplorerSortBy='name'       " Sort by the buffer's name.
+let g:ycm_key_invoke_completion = '<C-S-Space>'
+let g:ycm_key_list_select_completion = ['<C-TAB>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<C-S-TAB>', '<Up>']
 
 " syntastic
 let g:syntastic_check_on_open = 0
