@@ -112,6 +112,9 @@ map <F5> :make<CR>
 map <C-F5> Qmake<Space>
 "autocmd CmdwinEnter * map <buffer> <F5> <CR>q:
 
+"fugitive
+nmap <leader>f :Ggrep <C-R>=expand("<cword>")<CR><CR>
+
 "set tags=tags
 "**********************************************************************************
 "cscope
@@ -142,8 +145,8 @@ map <C-F5> Qmake<Space>
 
 "**********************************************************************************
 "font
-set guifont=DejaVu\ Sans\ Mono\ 10
-"set guifont=Ubuntu\ Mono\ 12
+"set guifont=DejaVu\ Sans\ Mono\ 10
+set guifont=Ubuntu\ Mono\ 12
 
 nmap <silent> <C-F8> :cp<CR>
 nmap <silent> <F8> :cn<CR>
@@ -228,8 +231,8 @@ let loaded_matchit = 1
 
 "YouCompleteMe
 let g:ycm_key_invoke_completion = '<C-S-Space>'
-let g:ycm_key_list_select_completion = ['<C-TAB>', '<Down>']
-let g:ycm_key_list_previous_completion = ['<C-S-TAB>', '<Up>']
+let g:ycm_key_list_select_completion = ['<TAB>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<S-TAB>', '<Up>']
 
 " syntastic
 let g:syntastic_check_on_open = 0
@@ -245,10 +248,10 @@ let g:Gtags_Auto_Update = 1
 nmap gtu                       :! global -v -u && htags -v && echo -e "\nGtags and Htags updated."<CR>
 " GTags Find definition or reference of object under Cursor (depends on the context, see $ info global )
 "nmap gtfc   :GtagsCursor<CR>
-nmap gt   :GtagsCursor<CR>
+nmap <leader>d   :GtagsCursor<CR>
 " GTags Find Reference to object under cursor
 "nmap gtfr   :Gtags -r<CR><CR>
-nmap gtr   :Gtags -r<CR><CR>
+nmap <leader>r   :Gtags -r<CR><CR>
 " GTags List tags from current file
 nmap gtl    :Gtags -f %<CR>
 " GTags List all *.c files

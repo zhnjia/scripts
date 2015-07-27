@@ -1,11 +1,11 @@
 * java
 ** decompile android apk
-   #+BEGIN_SRC shell
-     $ unzip app.apk -d app
-     $ cd app; dex2jar.sh ./classes.dex
-     $ unzip ./classes_dex2jar.jar -d source
-     $ jd-gui&
-   #+END_SRC
+#+begin_src sh
+ $ unzip app.apk -d app
+ $ cd app; dex2jar.sh ./classes.dex
+ $ unzip ./classes_dex2jar.jar -d source
+ $ jd-gui&
+#+end_src
 
 * http
 ** content-encoding
@@ -72,9 +72,9 @@
 
 * ssh
 ** 上传本地key到服务器
-#+BEGIN_SRC shell
-  ssh-keygen -t  rsa
-  ssh-copy-id -i ~/.ssh/id_rsa.pub  root@192.168.0.3
+#+begin_src sh
+ $ ssh-keygen -t  rsa
+ $ ssh-copy-id -i ~/.ssh/id_rsa.pub  root@192.168.0.3
 #+end_src
 * google host
 ** [[https://github.com/racaljk/hosts/blob/master/hosts][github]]
@@ -84,9 +84,9 @@
 sync & echo 3 > /proc/sys/vm/drop_caches
 ** keyboard
 *** swap CAPSLOCK and CTRL
-1. setxkbmap -option "ctrl:swapcaps"
-2. xmodmap
 #+BEGIN_SRC sh
+$ setxkbmap -option "ctrl:swapcaps"
+$ xmodmap
   !
   ! Swap Caps_Lock and Control_L
   !
@@ -165,3 +165,29 @@ tail -f /var/log/syslog
 ** tshark
 1. analysis pcap file
 tshark -r ssl_capture.pcap -d tcp.port==4443,ssl -R "(tcp.dstport eq 4443 and tcp.flags.syn == 1) or (tcp.srcport eq 4443 and ssl.change_cipher_spec)" -T fields -e frame.time_relative 2> /dev/null
+* SSL/TLS
+** 内容加密
+加密算法分两种：对称加密和非对称加密。所谓对称加密（也叫密钥加密）就是加密和解密使用相同的密钥。而非对称加密（也叫公钥加密）就是指加密和解密使用了不同的密钥。
+*** 非对称密钥交换
+**** RSA密钥协商过程
+1. 客户端发送client_hello, 包含随机数R1
+2. 服务端回复server_hello，包含随机数R2，以及包含证书公钥P的certificate
+3. 客户端使用R2生成premaster_secret和master_secret。premaster_secret长度为48个字节，前两个字节是协议版本，剩下的填充一个随机数
+   Master_key = PRF(premaster_secrect, "master secert", R1 + R2)
+   至此，客户端侧的密钥已经完成协商。
+4. 客户端使用P加密premaster_secret并发送给服务端
+5. 服务端使用私钥解密得到premaster_secret，使用相同的公式就可以得到master_secret
+**** ECDHE密钥协商
+1. 客户端发送client_hello，包含随机数R1和两个扩展
+   1）elliptic_curves：客户端支持的曲线类型和有限域参数
+   2）ec_point_formats：支持的曲线点格式，默认uncompressed
+2. 服务端回复server_hello，包含随机数R2及ECC扩展。
+3. 服务端回复certificate，携带了公钥
+4. 服务端生成ECDH临时公钥，同时回复server_key_exchange，包含三个重要内容：
+   1）ECC相关参数
+   2）ECDH临时公钥
+   3）ECC参数和公钥生成的签名值，用户客户端校验
+5. 客户端接受server_key_exchange之后，使用证书公钥进行签名解密和校验，获取服务器端的ECDH临时公钥，生成共享密钥
+   至此，客户端完成密钥协商
+6. 客户端生成ECDH临时公钥和client_key_exchange消息，不需要加密
+7. 服务器处理client_key_exchange消息，获取客户端ECDH临时公钥，最总生成共享密钥
