@@ -12,7 +12,7 @@ EOF
 tcpdmpNotRtd() {
     adb shell <<EOF
 su
-${tp}/tcpdump -p -vv -s 0 -i any -w /sdcard/capture${tag}.pcap
+${tp}/tcpdump -p -vv -s 0 -i any -w /sdcard/capture${tag}.pcap 
 exit
 exit
 EOF
@@ -20,7 +20,7 @@ EOF
 
 stopTcpdumpRtd() {
     adb shell <<EOF
-kill $pc
+kill -9 $pc
 exit
 EOF
 }
@@ -28,7 +28,7 @@ EOF
 stopTcpdumpNotRtd() {
     adb shell <<EOF
 su
-kill $pc
+kill -9 $pc
 exit
 exit
 EOF
@@ -38,7 +38,9 @@ if [ $# -eq 3 ];then
     tp=$2
     tag=$3
     [ $rtd -eq 1 ] && tcpdmpRtd || tcpdmpNotRtd
-elif [ "$2" = "-q" ];then
+    exit
+fi
+if [ "$2" = "-q" ];then
     pc=$(adb shell ps | grep tcpdump | awk '{print $2}')
     [ $rtd -eq 1 ] && stopTcpdumpRtd || stopTcpdumpNotRtd
 fi

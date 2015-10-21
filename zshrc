@@ -52,7 +52,7 @@ set -o emacs
 eval `dircolors ~/soft_make/dircolors-solarized-master/dircolors.ansi-universal`
 
 # Customize to your needs...
-export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink:/opt/wireshark-1.8.13/bin:/home/jiazhang/pkg/depot_tools:/home/jiazhang/pkg/go/bin:/opt/android_tools/android-sdk-linux_x86/platform-tools:/opt/android_tools/android-sdk-linux_x86/tools/
+export PATH=$PATH:/home/jiazhang/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/home/jiazhang/bin/:/opt/bbndk/host_10_1_0_132/linux/x86/usr/bin:/home/jiazhang/bb/blackberry.tools.SDK/bin:/home/jiazhang/tools/tools/pngshrink:/home/jiazhang/pkg/depot_tools:/home/jiazhang/pkg/go/bin:/opt/android_tools/android-sdk-linux_x86/platform-tools:/opt/android_tools/android-sdk-linux_x86/tools/
 
 export CCACHE_DIR=/mnt/temp/CCACHE
 
@@ -67,6 +67,8 @@ export CLUSTER=zj
 #bindkey -v
 bindkey "\eA" history-search-backward
 bindkey "\eB" history-search-forward
+
+alias ws="~/workspace/turbo_sdk/spdyshark/wireshark"
 
 #alias gk="gitk -500&"
 #alias mini="cd ~/workspace/oupeng"

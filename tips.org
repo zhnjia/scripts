@@ -191,3 +191,8 @@ tshark -r ssl_capture.pcap -d tcp.port==4443,ssl -R "(tcp.dstport eq 4443 and tc
    至此，客户端完成密钥协商
 6. 客户端生成ECDH临时公钥和client_key_exchange消息，不需要加密
 7. 服务器处理client_key_exchange消息，获取客户端ECDH临时公钥，最总生成共享密钥
+* git
+** patch
+#+begin_src sh
+$ git format -n commit //生成最近n个点的patch
+#+end_src

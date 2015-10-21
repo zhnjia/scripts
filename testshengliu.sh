@@ -111,7 +111,7 @@ main() {
         sleep 3s
         kill $preLogID
 
-        sh testtcpdump.sh $rtd -q > /dev/null
+        sh ./testtcpdump.sh $rtd -q
 
         echo "pull ${t}.pcap"
         adb pull /sdcard/capture${t}.pcap ./${dir}/${t}.pcap

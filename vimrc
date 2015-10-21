@@ -146,7 +146,9 @@ nmap <leader>f :Ggrep <C-R>=expand("<cword>")<CR><CR>
 "**********************************************************************************
 "font
 "set guifont=DejaVu\ Sans\ Mono\ 10
-set guifont=Ubuntu\ Mono\ 12
+"set guifont=Ubuntu\ Mono\ 12
+set guifont=Hack\ 11
+
 
 nmap <silent> <C-F8> :cp<CR>
 nmap <silent> <F8> :cn<CR>
@@ -274,3 +276,5 @@ let g:CommandTMaxHeight = 15
 let g:CommandTMaxFiles = 1000000
 let g:CommandTMaxDepth = 40
 let g:CommandTSmartCase = 1
+
+map <C-x><C-c> :wqa<CR>
