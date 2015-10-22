@@ -196,3 +196,6 @@ tshark -r ssl_capture.pcap -d tcp.port==4443,ssl -R "(tcp.dstport eq 4443 and tc
 #+begin_src sh
 $ git format -n commit //生成最近n个点的patch
 #+end_src
+* android
+** 小米adb
+1, *#*#717717#*#* 调试号码
