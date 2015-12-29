@@ -118,8 +118,10 @@ tail -f /var/log/syslog
 1. put "// -*-c++-*-" at the top of the file
 2. (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 *** lines
-1. 'C-o' :open-line [Insert a blank line after the cursor]
-2. 'C-M-o' :split-line [new line, and align it at same column of cursor]
+1) 'C-o' :open-line [Insert a blank line after the cursor]
+2) 'C-M-o' :split-line [new line, and align it at same column of cursor]
+3) 'M-^' :join this line to previous line
+4) 'C-u M-^' :join following line to this line
 *** Indent
 1. 'M-/^/' :delete-indentation [join two line, and delete the front indentation of cursor]
 2. 'C-M \' :indent-region [indents each line in the “usual” way]
