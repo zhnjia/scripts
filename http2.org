@@ -32,22 +32,35 @@ HTTP2优化了HTTP语义上的传输，并且支持1.1的所有核心功能，�
 有些帧和流是完全独立与HTTP的，这个详述没有定义完全通用的帧层。这些帧和流是因协议和PUSH而定制的。
 ** 约定和术语
 client: 初始化HTTP2.0链接的终端。clients 发送请求并接受响应。
+
 connection: 两个终端之间的传输层链接。
+
 connection error: 影响整个HTTP2.0链接的错误
+
 endpoint: 链接的客户端或服务端
+
 frame: HTTP2.0的最小交互单元，根据不同类型有头部和不同长度字节数组成。
+
 peer: 对端。
+
 receiver: 接受帧数据的一方
+
 sender: 发送帧数据的一方
+
 server: 接受HTTP2.0链接的终端。Servers接受请求并发送回响。
-stream: 在HTTP2.0链接中双向传输的帧流。\n
+
+stream: 在HTTP2.0链接中双向传输的帧流。
+
 stream error: 独立的一个流上的错误。
 * 启动HTTP2
 HTTP2.0是一个运行在TCP上的应用层协议。client是链接发起端。
+
 HTTP2.0同样使用http和https，端口也是和HTTP1.1一致。因此请求一个http或https的资源首先要看服务端是否支持HTTP2.0。
+
 决定是否支持HTTP2.0在http和https是不同的。
 ** HTTP2版本指定
 h2 指明协议使用TLS
+
 h2c 使用明文TCP
 ** "http"
 客户端在不知道下一跳是否支持2.0时使用HTTP Upgrade机制。发送1.1请求时添加一个包含“h2c”的头部，同时必须包含HTTP-Settings首部。
