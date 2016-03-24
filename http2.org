@@ -72,5 +72,64 @@ Connection: Upgrade, HTTP2-Settings
 Upgrade: h2c
 HTTP2-Settings: <base64url encoding of HTTP/2 SETTINGS payload>
 #+END_SRC
+包含有效负载必须在客户端能发送2.0帧之前发送。这意味着链接可能被一个大的请求阻塞。
+如果初始化请求和一些重要的后续请求并发，可以使用OPTIONS请求升级到2.0。
+如果服务端不支持2.0可以忽略升级请求，就像没有upgrade一样：
+#+BEGIN_SRC css
+HTTP/1.1 200 OK
+Content-Length: 243
+Content-Type: text/html
+
+...
+#+END_SRC
+服务端必须忽略upgrade首部"h2"字段，意味着在TLS上实现2.0，3.3节讨论
+
+服务端回复101以表示支持2.0。101回响后空一行，就可以发送2.0帧数据了，而且必须包含对发起升级的请求的响应。
+
+例如：
+#+BEGIN_SRC css
+HTTP/1.1 101 Switching Protocols
+Connection: Upgrade
+Upgrade: h2c
+
+[ HTTP/2 connection ...
+#+END_SRC
+发送的第一帧必须是包含SETTINGS帧，作为链接的开端。收到101回应之后，客户端必须发送一个包含SETTINGS帧，作为开端。
+
+upgrade之前发送的请求置为stream id为1、优先级为默认值。stream 1表示从客户端到服务端的半关闭流，因为已经是作为1.1请求完成了。2.0的链接建立好后，stream1用来发送应答。
+*** http2.0-settings 首部
+从1.1升级到2.0的请求必须确切的包含HTTP2-Settings首部.HTTP2-Settings首部包含了控制2.0链接的参数，如果服务器接受升级的请求。
+#+BEGIN_SRC css
+HTTP2-Settings    = token68
+#+end_src
+一旦这个首部没有或出现多次，服务端绝对不能升级到2.0，服务端也不能发送这个首部。
+
+HTTP2-Settings首部内容是SETTINGS帧，base64url编码的字符串。
+
+由于upgrade仅应用到直接的链接，HTTP2-Settings也必须是Connection的选项，防止被转发。
+
+服务端按照SETTINGS帧一样解码处理这些值。显式的确认这些settings是没有必要的，因为101响应作为隐式的确认。在升级请求里提供这些值，使得客户端可以在收到服务端发来的帧之前提供参数。
+** "https"
+https使用TLS作为应用层协议。
+
+http2 over tls使用“h2”作为协议标示。
+
+一旦tls协商完成，客户端和服务端都要发送链接前言。
+** 使用先验知识开始HTTP2.0
+客户端可以通过其他方式了解一个特定的服务器是否支持http2.0。比如通过广播。
+
+客户端必须发送链接前言，之后有可能发送2.0帧给服务端。服务端根据链接前言识别这些链接。这个仅仅影响到http2的明文TCP链接的建立，http2s必须使用tls。
+
+同样的，服务端必须发送链接前言。
+
+没有额外的信息，优先支持http2并不一位着给定的服务器对将来的链接支持http2。比如，服务器因网络情况或区分集群中的实例而改变配置。
+** http2链接前言
+http2要求每一端必须发送一个链接前言，作为使用的协议的确认，并设置初始化设置。客户端和服务端双发都要不同的链接前言。
+
+客户端的链接前言以24字节序列开始，16进制：
+#+BEGIN_SRC css
+0x505249202a20485454502f322e300d0a0d0a534d0d0a0d0a
+#+END_SRC
+
 
 
