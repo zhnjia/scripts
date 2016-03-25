@@ -158,12 +158,12 @@ http2要求每一端必须发送一个链接前言，作为使用的协议的确
 Length： 无符号24位的整数记录的数据的长度。超过2^14（16384）的数据是不能发送的，除非把SETTINGS_MAX_FRAME_SIZE设置的更高。
 9字节首部长度是不计算在内。
 
-:DRAWERNAME:
 Type： 8位的帧类型。决定了帧的格式和语义。未知的帧类型必须忽略并丢弃。
+
 Flags： 预留指明帧类型标志的8位数据。
 标志对指定的帧类型有语义上的特性。没有标志位的帧必须忽略该位，发送的时候必须置零。
+
 R： 1比特预留位。未定义，发送时置零，接受时忽略。
-:END:
 
 Stream Identifier： 31位整型。为零时，表示该帧占据整个链接。
 
@@ -190,5 +190,64 @@ Cookie使用HTTP mapping特殊处理。
 一个完整的头部块由如下组成：
 + 单独一个HEADERS或PUSH_PROMISE帧，并且标志位设为END_HEADERS，
 + 或者，一个没有END_HEADERS位的HEADERS或PUSH_PROMISE，跟着一个或多个CONTINUATION帧，最后一个CONTINUATION的标志位设为END_HEADERS。
+
+首部压缩是有状态的。整个链接中使用一个压缩上下文和一个解压上下文。首部解码的错误必须被视为COMPRESS_ERROR类型的链接错误。
+
+每个首部块被当成独立的单元处理。首部块必须作为连续的帧传输，中间不能夹杂其他类型的帧或其他的流。HEADERS和CONTINUATION帧链的最后一帧会设
+置END_HEADERS标志位。这样逻辑上还是单独一个帧。
+
+首部块碎片只能在HEADERS、PUSH_PROMISE或CONTINUATION中传输，因为只有这些帧承载着由接收方维护的可以修改压缩上下文的数据。接收端收到这些
+帧后要重新组装首部块，并解压缩，即使这些帧可能会被忽略。接收方如果没有解压缩一个首部块，并有COMPRESSION_ERROR的错误，则必须终端链接。
+* 流和多路
+流是指http2链接中，独立的，在客户端和服务端双向交互帧序列。流有如下重要的特点：
++ 一个http2.0链接中可以有多个并发的流，不同的流之间可以交叉传输帧序列。
++ 流可以被客户端或服务器一方或双方建立使用。
++ 任何一方都可以关闭流。
++ 流上发送的帧的顺序是很重要的。接收方按接受的顺序处理帧。尤其是HEADERS和DATA帧的顺序，在语义上很重要。
++ 流用整数标记。流的标记有发起方设置。
+** 流的状态
+流的生命周期图：
+#+BEGING_SRC css
+            
+                             +--------+
+                     send PP |        | recv PP
+                    ,--------|  idle  |--------.
+                   /         |        |         \
+                  v          +--------+          v
+           +----------+          |           +----------+
+           |          |          | send H /  |          |
+    ,------| reserved |          | recv H    | reserved |------.
+    |      | (local)  |          |           | (remote) |      |
+    |      +----------+          v           +----------+      |
+    |          |             +--------+             |          |
+    |          |     recv ES |        | send ES     |          |
+    |   send H |     ,-------|  open  |-------.     | recv H   |
+    |          |    /        |        |        \    |          |
+    |          v   v         +--------+         v   v          |
+    |      +----------+          |           +----------+      |
+    |      |   half   |          |           |   half   |      |
+    |      |  closed  |          | send R /  |  closed  |      |
+    |      | (remote) |          | recv R    | (local)  |      |
+    |      +----------+          |           +----------+      |
+    |           |                |                 |           |
+    |           | send ES /      |       recv ES / |           |
+    |           | send R /       v        send R / |           |
+    |           | recv R     +--------+   recv R   |           |
+    | send R /  `----------->|        |<-----------'  send R / |
+    | recv R                 | closed |               recv R   |
+    `----------------------->|        |<----------------------'
+                             +--------+
+
+       send:   endpoint sends this frame
+       recv:   endpoint receives this frame
+
+       H:  HEADERS frame (with implied CONTINUATIONs)
+       PP: PUSH_PROMISE frame (with implied CONTINUATIONs)
+       ES: END_STREAM flag
+       R:  RST_STREAM frame
+
+          
+#+END_SRC
+...
 
 
