@@ -207,7 +207,7 @@ Cookie使用HTTP mapping特殊处理。
 + 流用整数标记。流的标记有发起方设置。
 ** 流的状态
 流的生命周期图：
-#+BEGING_SRC css
+#+BEGIN_SRC css
             
                              +--------+
                      send PP |        | recv PP
