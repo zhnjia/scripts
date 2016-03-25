@@ -158,12 +158,12 @@ http2要求每一端必须发送一个链接前言，作为使用的协议的确
 Length： 无符号24位的整数记录的数据的长度。超过2^14（16384）的数据是不能发送的，除非把SETTINGS_MAX_FRAME_SIZE设置的更高。
 9字节首部长度是不计算在内。
 
+:DRAWERNAME:
 Type： 8位的帧类型。决定了帧的格式和语义。未知的帧类型必须忽略并丢弃。
-
 Flags： 预留指明帧类型标志的8位数据。
 标志对指定的帧类型有语义上的特性。没有标志位的帧必须忽略该位，发送的时候必须置零。
-
 R： 1比特预留位。未定义，发送时置零，接受时忽略。
+:END:
 
 Stream Identifier： 31位整型。为零时，表示该帧占据整个链接。
 
@@ -178,5 +178,17 @@ Stream Identifier： 31位整型。为零时，表示该帧占据整个链接。
 
 终端没义务使用帧内所有可用空间。发送大尺寸的帧可能导致时效敏感的帧的延迟，会导致性能下降。
 ** Header 压缩和解压缩
+和http1.0一样，http2.0头部字段也是一个名称有多个值。头部字段在请求和回响中，server　push也含有。
+
+头部链表是０个或多个头部字段的集合。传输时，首部列表使用http header compression序列化成一个首部块。序列化的首部块被分成一个
+或多个字节序列，称为首部块碎片，在HEADERS、PUSH_PROMISE或CONTINUATION帧。
+
+Cookie使用HTTP mapping特殊处理。
+
+接受方组合这些首部碎片，解压缩并重组成头部链表。
+
+一个完整的头部块由如下组成：
++ 单独一个HEADERS或PUSH_PROMISE帧，并且标志位设为END_HEADERS，
++ 或者，一个没有END_HEADERS位的HEADERS或PUSH_PROMISE，跟着一个或多个CONTINUATION帧，最后一个CONTINUATION的标志位设为END_HEADERS。
 
 
