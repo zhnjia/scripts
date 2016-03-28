@@ -1,4 +1,3 @@
-#+OPTIONS: \n:t
 * 背景
 HTTP是一个非常成功的协议。然而，HTTP的底层传输方式的几个特性带来的负面效果，影响了应用程序的性能。
 
@@ -249,5 +248,27 @@ Cookie使用HTTP mapping特殊处理。
           
 #+END_SRC
 ...
+
+注意到这幅图显示了流的状态转换，以及影响到这些转换的帧和标志位。在这点上，CONTINUATION帧不会引起状态变化，他们只在HEADERS
+和PUSH_PROMISE帧上部分有效。为了状态转换的目的，END_STREAM标志被当成一个单独的事件处理。具有END_STREAM的HEADERS帧可能
+导致两种状态转换。
+
+当帧在传输的时候，双端都可能有个不同的流的状态。终端不会协同创建流，由某一端单独创建。发送RST_STREAM后，状态错配的负面结果
+顶多是“closed"状态，有时候帧可能在关闭之后才收到。
+
+流有下列状态：
+
+  *idle*:
+  所有的流从idle开始。
+
+  如下从idle开始的转换是有效的:
+  + 发送和接受HEADERS帧使流变成"open"。同样的HEADERS帧也可能导致流立即成半关闭状态。
+  + 在另一个流上发送PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(local)"
+  + 在另一个流上接受PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(remote)"
+  + PUSH_ PROMISE不会在idle流上发送，但预留流的id记录在Promised Stream ID
+  idle流接收到HEADERS和PRIORITY之外的帧时，必须被视为PROTOCOL_ERROR类型的链接错误。
+
+  *reserved(local)*:
+  
 
 
