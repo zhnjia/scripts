@@ -1,0 +1,290 @@
+# 背景
+HTTP是一个非常成功的协议。然而，HTTP的底层传输方式的几个特性带来的负面效果，影响了应用程序的性能。  
+尤其是HTTP1.0，在一个TCP链接上同一时间只允许处理一个请求。HTTP1.1添加了管道，仅部分解决了并发的问题，任然有报头阻塞的问题。因此，HTTP1.0/HTTP1.1客户端需要使用多个链接来解决并发和延迟的问题。  
+此外，HTTP头部字段经常是重复和冗余的，不仅增加了不必要的网络传输，还导致TCP初始化拥塞窗口被快速填满。当有多个请求创建新TCP链接时，使得延时变得过大。  
+HTTP2.0在一个链接上定义了一个优化的HTTP语义映射。允许在同一个链接上交叉传输请求和响应，对头部进行高效的编码。请求添加了优先级属性，使得高优先级的请求能够更快的完成，进一步提高性能。  
+与HTTP1.x相比，2.0使用更少的网络链接。意味着更少的网络竞争并使用长链接，使得网络能发挥更好的作用。  
+最后，2.0使用二进制消息帧，使得消息处理更高效。
+# 协议概览
+HTTP2优化了HTTP语义上的传输，并且支持1.1的所有核心功能，目标是通过几种方式提高效率。  
+2.0最基本的协议单元是帧。不同的帧完成不同的任务。比如，HEADERS和DATA就是请求和响应；其他帧，SETTINGS、WINDOW_UPDATE和PUSH_PROMISE是2.0的特性。  
+每一组请求和响应在独立分配的流传输,实现多路并发。流之间是完全独立的，因此一个阻塞或慢速的流是不会影响其他流的处理的。  
+流量控制和优先级可以更好的使用多路并发。流量控制能确保只有接收方能处理的数据才可以传输。优先级使得有限地资源能够被更重要的流使用。  
+2.0支持服务端可以主动下发PUSH响应。PUSH使得服务端可以预测客户端使用的数据而主动发送，权衡网络会出现潜在的延迟。服务端综合一个PUSH_PROMISE帧，然后另起一个流发送响应。  
+首部可能包含大量的冗余数据，帧可以压缩。通常情况下，允许多个请求压缩到一个数据包里，可以极大地减少请求的大小。
+## 文章组织
+详细说明分成4个部分：
+1. 启动HTTP2.0包含了如何初始化链接
+2. 帧和流层说明了数据机构以及如何形成多路复用
+3. 帧和错误定义了帧细节和错误类型
+4. HTTP映射和额外的需求描述了HTTP语义是如何用帧和流表达的
+
+有些帧和流是完全独立与HTTP的，这个详述没有定义完全通用的帧层。这些帧和流是因协议和PUSH而定制的。  
+## 约定和术语
+client: 初始化HTTP2.0链接的终端。clients 发送请求并接受响应。  
+connection: 两个终端之间的传输层链接。  
+connection error: 影响整个HTTP2.0链接的错误  
+endpoint: 链接的客户端或服务端  
+frame: HTTP2.0的最小交互单元，根据不同类型有头部和不同长度字节数组成。  
+peer: 对端。  
+receiver: 接受帧数据的一方  
+sender: 发送帧数据的一方  
+server: 接受HTTP2.0链接的终端。Servers接受请求并发送回响。  
+stream: 在HTTP2.0链接中双向传输的帧流。  
+stream error: 独立的一个流上的错误。
+# 启动HTTP2
+HTTP2.0是一个运行在TCP上的应用层协议。client是链接发起端。  
+HTTP2.0同样使用http和https，端口也是和HTTP1.1一致。因此请求一个http或https的资源首先要看服务端是否支持HTTP2.0。  
+决定是否支持HTTP2.0在http和https是不同的。
+## HTTP2版本指定
+h2 指明协议使用TLS  
+h2c 使用明文TCP  
+## "http"
+客户端在不知道下一跳是否支持2.0时使用HTTP Upgrade机制。发送1.1请求时添加一个包含“h2c”的头部，同时必须包含HTTP-Settings首部。  
+例如：  
+<code>
+GET / HTTP/1.1  
+Host: server.example.com  
+Connection: Upgrade, HTTP2-Settings  
+Upgrade: h2c  
+HTTP2-Settings: &lt;base64url encoding of HTTP/2 SETTINGS payload>   
+</code>
+包含有效负载必须在客户端能发送2.0帧之前发送。这意味着链接可能被一个大的请求阻塞。  
+如果初始化请求和一些重要的后续请求并发，可以使用OPTIONS请求升级到2.0。  
+如果服务端不支持2.0可以忽略升级请求，就像没有upgrade一样：  
+<code>
+HTTP/1.1 200 OK  
+Content-Length: 243  
+Content-Type: text/html  
+
+...  
+</code>
+服务端必须忽略upgrade首部"h2"字段，意味着在TLS上实现2.0，3.3节讨论  
+服务端回复101以表示支持2.0。101回响后空一行，就可以发送2.0帧数据了，而且必须包含对发起升级的请求的响应。  
+例如：  
+<code>
+HTTP/1.1 101 Switching Protocols  
+Connection: Upgrade  
+Upgrade: h2c  
+
+[ HTTP/2 connection ...  
+</code>
+发送的第一帧必须是包含SETTINGS帧，作为链接的开端。收到101回应之后，客户端必须发送一个包含SETTINGS帧，作为开端。  
+upgrade之前发送的请求置为stream id为1、优先级为默认值。stream 1表示从客户端到服务端的半关闭流，因为已经是作为1.1请求完成了。2.0的链接建立好后，stream1用来发送应答。  
+### http2.0-settings 首部
+从1.1升级到2.0的请求必须确切的包含HTTP2-Settings首部.HTTP2-Settings首部包含了控制2.0链接的参数，如果服务器接受升级的请求。  
+<code>
+HTTP2-Settings    = token68  
+</code>
+一旦这个首部没有或出现多次，服务端绝对不能升级到2.0，服务端也不能发送这个首部。  
+HTTP2-Settings首部内容是SETTINGS帧，base64url编码的字符串。  
+由于upgrade仅应用到直接的链接，HTTP2-Settings也必须是Connection的选项，防止被转发。  
+服务端按照SETTINGS帧一样解码处理这些值。显式的确认这些settings是没有必要的，因为101响应作为隐式的确认。在升级请求里提供这些值，使得客户端可以在收到服务端发来的帧之前提供参数。  
+## "https"
+https使用TLS作为应用层协议。  
+http2 over tls使用“h2”作为协议标示。  
+一旦tls协商完成，客户端和服务端都要发送链接前言。
+## 使用先验知识开始HTTP2.0
+客户端可以通过其他方式了解一个特定的服务器是否支持http2.0。比如通过广播。  
+客户端必须发送链接前言，之后有可能发送2.0帧给服务端。服务端根据链接前言识别这些链接。这个仅仅影响到http2的明文TCP链接的建立，http2s必须使用tls。  
+同样的，服务端必须发送链接前言。  
+没有额外的信息，优先支持http2并不一位着给定的服务器对将来的链接支持http2。比如，服务器因网络情况或区分集群中的实例而改变配置。  
+## http2链接前言
+http2要求每一端必须发送一个链接前言，作为使用的协议的确认，并设置初始化设置。客户端和服务端双发都要不同的链接前言。  
+客户端的链接前言以24字节序列开始，16进制：  
+<code>
+0x505249202a20485454502f322e300d0a0d0a534d0d0a0d0a  
+</code>
+这就是链接前言(PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n)。这串字符后面必须跟一个可以为空的SETTINGS帧。客户端在收到101回响后必须立即发送链接前言，TLS链接的首次发送的字节。如果发起2.0链接前就已经知道服务端支持，那一建立好链接后就要发送前言。  
+服务端的链接前言由一个有可能是空的SETTINGS帧组成，而且也必须是服务端发送的第一个帧。  
+发送链接前言之后收到的前言，包含了SETTINGS帧必须能够被识别。  
+为了避免不必要的延时，可以允许客户端在收到服务端的前言之前发送额外的帧。需要注意的是，服务端的前言中包含的SETTINGS帧可能修改期望的客户端通信方式。  
+客户端和服务端遇到无效的前言时，必须视为协议错误类型的链接错误。发送一个GOAWAY帧。  
+# HTTP 帧
+一旦链接建立成功，终端就可以交互帧数据了。  
+## 帧格式
+所有的帧以9字节首部开始  
+> +-----------------------------------------------+  
+> |                 Length (24)                   |  
+> +---------------+---------------+---------------+  
+> |   Type (8)    |   Flags (8)   |  
+> +-+-------------+---------------+-------------------------------+  
+> |R|                 Stream Identifier (31)                      |  
+> +=+=============================================================+  
+> |                   Frame Payload (0...)                      ...  
+> +---------------------------------------------------------------+  
+
+首部各字段定义：
+Length： 无符号24位的整数记录的数据的长度。超过2^14（16384）的数据是不能发送的，除非把SETTINGS_MAX_FRAME_SIZE设置的更高。
+9字节首部长度是不计算在内。
+
+Type： 8位的帧类型。决定了帧的格式和语义。未知的帧类型必须忽略并丢弃。
+
+Flags： 预留指明帧类型标志的8位数据。
+标志对指定的帧类型有语义上的特性。没有标志位的帧必须忽略该位，发送的时候必须置零。
+
+R： 1比特预留位。未定义，发送时置零，接受时忽略。
+
+Stream Identifier： 31位整型。为零时，表示该帧占据整个链接。
+
+帧负载的内容和结构由其类型决定。
+** 帧大小
+接收方在SETTINGS_MAX_FRAME_SIZE中设置了帧包大小的上限，大小(>=2^14 && <= 2^24-1)。
+
+所有的实现都必须能最少接受和处理2^14字节数据，再加上9字节的首部。在讨论帧大小时，首部的长度是不包含在内的。
+
+超过设定的帧大小，或者超过帧类型的限制，或者太小而不能承载帧数据，终端必须必须发送FRAME_SIZE_ERROR的错误码。
+帧大小错误可能改变整个链接的状态，必须视为链接错误。这同样适用于任何承载头字段，以及任何stream id为0的帧。
+
+终端没义务使用帧内所有可用空间。发送大尺寸的帧可能导致时效敏感的帧的延迟，会导致性能下降。
+** Header 压缩和解压缩
+和http1.0一样，http2.0头部字段也是一个名称有多个值。头部字段在请求和回响中，server　push也含有。
+
+头部链表是０个或多个头部字段的集合。传输时，首部列表使用http header compression序列化成一个首部块。序列化的首部块被分成一个
+或多个字节序列，称为首部块碎片，在HEADERS、PUSH_PROMISE或CONTINUATION帧。
+
+Cookie使用HTTP mapping特殊处理。
+
+接受方组合这些首部碎片，解压缩并重组成头部链表。
+
+一个完整的头部块由如下组成：
++ 单独一个HEADERS或PUSH_PROMISE帧，并且标志位设为END_HEADERS，
++ 或者，一个没有END_HEADERS位的HEADERS或PUSH_PROMISE，跟着一个或多个CONTINUATION帧，最后一个CONTINUATION的标志位设为END_HEADERS。
+
+首部压缩是有状态的。整个链接中使用一个压缩上下文和一个解压上下文。首部解码的错误必须被视为COMPRESS_ERROR类型的链接错误。
+
+每个首部块被当成独立的单元处理。首部块必须作为连续的帧传输，中间不能夹杂其他类型的帧或其他的流。HEADERS和CONTINUATION帧链的最后一帧会设
+置END_HEADERS标志位。这样逻辑上还是单独一个帧。
+
+首部块碎片只能在HEADERS、PUSH_PROMISE或CONTINUATION中传输，因为只有这些帧承载着由接收方维护的可以修改压缩上下文的数据。接收端收到这些
+帧后要重新组装首部块，并解压缩，即使这些帧可能会被忽略。接收方如果没有解压缩一个首部块，并有COMPRESSION_ERROR的错误，则必须终端链接。
+* 流和多路
+流是指http2链接中，独立的，在客户端和服务端双向交互帧序列。流有如下重要的特点：
++ 一个http2.0链接中可以有多个并发的流，不同的流之间可以交叉传输帧序列。
++ 流可以被客户端或服务器一方或双方建立使用。
++ 任何一方都可以关闭流。
++ 流上发送的帧的顺序是很重要的。接收方按接受的顺序处理帧。尤其是HEADERS和DATA帧的顺序，在语义上很重要。
++ 流用整数标记。流的标记有发起方设置。
+** 流的状态
+流的生命周期图：
+#+BEGIN_SRC css
+
+                             +--------+
+                     send PP |        | recv PP
+                    ,--------|  idle  |--------.
+                   /         |        |         \
+                  v          +--------+          v
+           +----------+          |           +----------+
+           |          |          | send H /  |          |
+    ,------| reserved |          | recv H    | reserved |------.
+    |      | (local)  |          |           | (remote) |      |
+    |      +----------+          v           +----------+      |
+    |          |             +--------+             |          |
+    |          |     recv ES |        | send ES     |          |
+    |   send H |     ,-------|  open  |-------.     | recv H   |
+    |          |    /        |        |        \    |          |
+    |          v   v         +--------+         v   v          |
+    |      +----------+          |           +----------+      |
+    |      |   half   |          |           |   half   |      |
+    |      |  closed  |          | send R /  |  closed  |      |
+    |      | (remote) |          | recv R    | (local)  |      |
+    |      +----------+          |           +----------+      |
+    |           |                |                 |           |
+    |           | send ES /      |       recv ES / |           |
+    |           | send R /       v        send R / |           |
+    |           | recv R     +--------+   recv R   |           |
+    | send R /  `----------->|        |<-----------'  send R / |
+    | recv R                 | closed |               recv R   |
+    `----------------------->|        |<----------------------'
+                             +--------+
+
+       send:   endpoint sends this frame
+       recv:   endpoint receives this frame
+
+       H:  HEADERS frame (with implied CONTINUATIONs)
+       PP: PUSH_PROMISE frame (with implied CONTINUATIONs)
+       ES: END_STREAM flag
+       R:  RST_STREAM frame
+
+
+#+END_SRC
+...
+
+注意到这幅图显示了流的状态转换，以及影响到这些转换的帧和标志位。在这点上，CONTINUATION帧不会引起状态变化，他们只在HEADERS
+和PUSH_PROMISE帧上部分有效。为了状态转换的目的，END_STREAM标志被当成一个单独的事件处理。具有END_STREAM的HEADERS帧可能
+导致两种状态转换。
+
+当帧在传输的时候，双端都可能有个不同的流的状态。终端不会协同创建流，由某一端单独创建。发送RST_STREAM后，状态错配的负面结果
+顶多是“closed"状态，有时候帧可能在关闭之后才收到。
+
+*** 流有下列状态：
+*idle*:
+
+所有的流从idle开始。
+
+如下从idle开始的转换是有效的:
++ 发送和接受HEADERS帧使流变成"open"。同样的HEADERS帧也可能导致流立即成半关闭状态。
++ 在另一个流上发送PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(local)"
++ 在另一个流上接受PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(remote)"
++ PUSH_PROMISE不会在idle流上发送，但预留流的id记录在Promised Stream ID
+idle流接收到HEADERS和PRIORITY之外的帧时，必须被视为PROTOCOL_ERROR类型的链接错误。
+
+*reserved(local)*:
+
+一个"reserved(local)"状态的流是通过发送PUSH_PROMISE帧承诺来的。PUSH_PROMISE帧通过将一个流和远程对端初始化的open流
+联系在一起而预留一个idle流。
+
+这种状态下，只有如下的转换是可能的:
++ 终端可以发送HEADERS帧，使得流处于"half-closed(remote)"。
++ 或者可以发送RST_STREAM关闭流，就会释放预留的流。
+
+除了HEADERS、RST_STREAM和PRIORITY帧，其他类型的帧一律不能发送。
+
+此状态下，可能会收到PRIORITY和WINDOW_UPDATE帧。一旦收到除了RST_STREAM、PRIORITY和WINDOW_UPDATE之外的帧，必须视为
+PROTOCOL_ERROR类型的链接错误。
+
+*reserved(remote)*:
+
+远端预留的流。
+
+可能的转换：
++ 收到HEADERS帧，成为"half-closed(local)"。
++ 或者发送RST_STREAM关闭流，会释放预留的流。
+
+终端可以发送PRIORITY帧，重新安排优先级。除了RST_STREAM、WINDOW_UPDATE和PRIORITY之外的帧不允许发送。
+
+如果收到了除HEADERS、RST_STREAM和PRIORITY以外的类型帧必须视为是PROTOCOL_ERROR类型的链接错误。
+
+*open*:
+
+处于open状态的流可以被两端用来发送任何类型的帧。此状态下发送要看广播的流级别的流量控制限制。任何一方都可以发送设置END_STREAM
+的帧，使得流处于半关闭状态。发送END_STREAM处于"half-closed(local)"状态，接收END_STREAM处于"half-closed(remote)"状态。
+
+任何一方都可以发送RST_STREAM帧，关闭流。
+
+*half-closed(local)*:
+
+此状态下不能发送除WINDOW_UPDATE、PRIORITY和RST_STREAM以外的帧。
+
+如果收到的帧包含END_STREAM标志，或收到了RST_STREAM，该流就成为close状态。
+
+此状态下可以接收任何类型的帧。使用WINDOW_UPDATE帧提供流量控制的能力对接收流量控制帧来说是很必要的。这种状态下，如果在一个承载
+END_STREAM标志的帧被发送之后很短时间内收到了WINDOW_UPDATE帧，是可以忽略的。
+
+收到PRIORITY帧后会重新排列流的优先级，这些流依赖被标志的流。
+
+*half-closed(remote)*:
+
+对端不在用来发送帧的流，这种状态下端点不再有义务维护一个接收方流控窗口。
+
+处于这种状态下的流接收到除WINDOW_UPDATE、PRIORITY和RST_STREAM之外的帧，必须回应STREAM_CLOSED类型的流错误。
+
+可以发送任何类型的帧，但同时要观察广播的流级别的流控限制。
+
+如果对端发送RST_STREAM，或者自己发送一个含end_stream标志的帧后，就转换成close状态。
+
+*closed*:
+
+这是最终的状态。
+
+有且仅可以发送PRIORITY帧。
