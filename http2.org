@@ -1,16 +1,11 @@
-* 背景
+# 背景
 HTTP是一个非常成功的协议。然而，HTTP的底层传输方式的几个特性带来的负面效果，影响了应用程序的性能。
-
 尤其是HTTP1.0，在一个TCP链接上同一时间只允许处理一个请求。HTTP1.1添加了管道，仅部分解决了并发的问题，任然有报头阻塞的问题。因此，HTTP1.0/HTTP1.1客户端需要使用多个链接来解决并发和延迟的问题。
-
 此外，HTTP头部字段经常是重复和冗余的，不仅增加了不必要的网络传输，还导致TCP初始化拥塞窗口被快速填满。当有多个请求创建新TCP链接时，使得延时变得过大。
-
-HTTP2.0在一个链接上定义了一个优化的HTTP语义映射。允许在同一个链接上交叉传输请求和响应，对头部进行高效的编码。请求添加了优先级属性，使得高优先级的请求能够更快的完成，进一步提高性能。
-
+HTTP2.0在一个链接上定义了一个优化的HTTP语义映射。允许在同一个链接上交叉传输请求和响应，对头部进行高效的编码。请求添加了优先级属性，使得高优先级的请求能够更快的完成，进一步提高性能。  
 与HTTP1.x相比，2.0使用更少的网络链接。意味着更少的网络竞争并使用长链接，使得网络能发挥更好的作用。
-
 最后，2.0使用二进制消息帧，使得消息处理更高效。
-* 协议概览
+# 协议概览
 HTTP2优化了HTTP语义上的传输，并且支持1.1的所有核心功能，目标是通过几种方式提高效率。
 
 2.0最基本的协议单元是帧。不同的帧完成不同的任务。比如，HEADERS和DATA就是请求和响应；其他帧，SETTINGS、WINDOW_UPDATE和PUSH_PROMISE是2.0的特性。
@@ -30,8 +25,7 @@ HTTP2优化了HTTP语义上的传输，并且支持1.1的所有核心功能，�
 4. HTTP映射和额外的需求描述了HTTP语义是如何用帧和流表达的
 有些帧和流是完全独立与HTTP的，这个详述没有定义完全通用的帧层。这些帧和流是因协议和PUSH而定制的。
 ** 约定和术语
-client: 初始化HTTP2.0链接的终端。clients 发送请求并接受响应。
-
+client: 初始化HTTP2.0链接的终端。clients 发送请求并接受响应。 
 connection: 两个终端之间的传输层链接。
 
 connection error: 影响整个HTTP2.0链接的错误
@@ -207,7 +201,7 @@ Cookie使用HTTP mapping特殊处理。
 ** 流的状态
 流的生命周期图：
 #+BEGIN_SRC css
-            
+
                              +--------+
                      send PP |        | recv PP
                     ,--------|  idle  |--------.
@@ -245,7 +239,7 @@ Cookie使用HTTP mapping特殊处理。
        ES: END_STREAM flag
        R:  RST_STREAM frame
 
-          
+
 #+END_SRC
 ...
 
@@ -256,19 +250,74 @@ Cookie使用HTTP mapping特殊处理。
 当帧在传输的时候，双端都可能有个不同的流的状态。终端不会协同创建流，由某一端单独创建。发送RST_STREAM后，状态错配的负面结果
 顶多是“closed"状态，有时候帧可能在关闭之后才收到。
 
-流有下列状态：
+*** 流有下列状态：
+*idle*:
 
-  *idle*:
-  所有的流从idle开始。
+所有的流从idle开始。
 
-  如下从idle开始的转换是有效的:
-  + 发送和接受HEADERS帧使流变成"open"。同样的HEADERS帧也可能导致流立即成半关闭状态。
-  + 在另一个流上发送PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(local)"
-  + 在另一个流上接受PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(remote)"
-  + PUSH_ PROMISE不会在idle流上发送，但预留流的id记录在Promised Stream ID
-  idle流接收到HEADERS和PRIORITY之外的帧时，必须被视为PROTOCOL_ERROR类型的链接错误。
+如下从idle开始的转换是有效的:
++ 发送和接受HEADERS帧使流变成"open"。同样的HEADERS帧也可能导致流立即成半关闭状态。
++ 在另一个流上发送PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(local)"
++ 在另一个流上接受PUSH_PROMISE帧将预留一个流为将来使用。预留流的状态是"reserved(remote)"
++ PUSH_PROMISE不会在idle流上发送，但预留流的id记录在Promised Stream ID
+idle流接收到HEADERS和PRIORITY之外的帧时，必须被视为PROTOCOL_ERROR类型的链接错误。
 
-  *reserved(local)*:
-  
+*reserved(local)*:
 
+一个"reserved(local)"状态的流是通过发送PUSH_PROMISE帧承诺来的。PUSH_PROMISE帧通过将一个流和远程对端初始化的open流
+联系在一起而预留一个idle流。
 
+这种状态下，只有如下的转换是可能的:
++ 终端可以发送HEADERS帧，使得流处于"half-closed(remote)"。
++ 或者可以发送RST_STREAM关闭流，就会释放预留的流。
+
+除了HEADERS、RST_STREAM和PRIORITY帧，其他类型的帧一律不能发送。
+
+此状态下，可能会收到PRIORITY和WINDOW_UPDATE帧。一旦收到除了RST_STREAM、PRIORITY和WINDOW_UPDATE之外的帧，必须视为
+PROTOCOL_ERROR类型的链接错误。
+
+*reserved(remote)*:
+
+远端预留的流。
+
+可能的转换：
++ 收到HEADERS帧，成为"half-closed(local)"。
++ 或者发送RST_STREAM关闭流，会释放预留的流。
+
+终端可以发送PRIORITY帧，重新安排优先级。除了RST_STREAM、WINDOW_UPDATE和PRIORITY之外的帧不允许发送。
+
+如果收到了除HEADERS、RST_STREAM和PRIORITY以外的类型帧必须视为是PROTOCOL_ERROR类型的链接错误。
+
+*open*:
+
+处于open状态的流可以被两端用来发送任何类型的帧。此状态下发送要看广播的流级别的流量控制限制。任何一方都可以发送设置END_STREAM
+的帧，使得流处于半关闭状态。发送END_STREAM处于"half-closed(local)"状态，接收END_STREAM处于"half-closed(remote)"状态。
+
+任何一方都可以发送RST_STREAM帧，关闭流。
+
+*half-closed(local)*:
+
+此状态下不能发送除WINDOW_UPDATE、PRIORITY和RST_STREAM以外的帧。
+
+如果收到的帧包含END_STREAM标志，或收到了RST_STREAM，该流就成为close状态。
+
+此状态下可以接收任何类型的帧。使用WINDOW_UPDATE帧提供流量控制的能力对接收流量控制帧来说是很必要的。这种状态下，如果在一个承载
+END_STREAM标志的帧被发送之后很短时间内收到了WINDOW_UPDATE帧，是可以忽略的。
+
+收到PRIORITY帧后会重新排列流的优先级，这些流依赖被标志的流。
+
+*half-closed(remote)*:
+
+对端不在用来发送帧的流，这种状态下端点不再有义务维护一个接收方流控窗口。
+
+处于这种状态下的流接收到除WINDOW_UPDATE、PRIORITY和RST_STREAM之外的帧，必须回应STREAM_CLOSED类型的流错误。
+
+可以发送任何类型的帧，但同时要观察广播的流级别的流控限制。
+
+如果对端发送RST_STREAM，或者自己发送一个含end_stream标志的帧后，就转换成close状态。
+
+*closed*:
+
+这是最终的状态。
+
+有且仅可以发送PRIORITY帧。
