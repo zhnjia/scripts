@@ -1,3 +1,6 @@
+#+TITLE: all tips
+#+OPTIONS: ^:nil
+
 * java
 ** decompile android apk
 #+begin_src sh
@@ -166,6 +169,9 @@ tail -f /var/log/syslog
 *** update
 1. [list-packages]: press 'U' for all packages which can be upgraded, and key 'x' to do upgrading.
 2. [helm-list-elisp-packages]: 'M-U'
+** features
+*** coding
+1. [set-buffer-file-coding-system]: 设置文件编码
 * sql
 ** distinct
 1. select distinct(id) from table; [选择并去重]
@@ -209,3 +215,9 @@ $ git format -n commit //生成最近n个点的patch
 * android
 ** 小米adb
 1, *#*#717717#*#* 调试号码
+** run-as
+1, 非root手机，debug包，以包名用户运行
+#+BEGIN_SRC sh
+$ adb shell
+$ run-as com.android.browser
+#+END_SRC
