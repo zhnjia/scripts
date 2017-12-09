@@ -48,7 +48,7 @@ def stopProfile(signum, frame):
 def drawResult(filename_prefix):
     x = range(0, len(MEMSTATS[ITEM[0]]))
     labels = [ITEM[0], ITEM[1], ITEM[2], ITEM[3], ITEM[4], ITEM[5], ITEM[6]]
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(gridspec_kw={"left":.05, "right":.70})
     ax.stackplot(x \
                  , MEMSTATS[ITEM[0]] \
                  , MEMSTATS[ITEM[1]] \
@@ -58,7 +58,7 @@ def drawResult(filename_prefix):
                  , MEMSTATS[ITEM[5]] \
                  , MEMSTATS[ITEM[6]]
                  , labels=labels)
-    ax.legend(loc=2)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     plt.savefig(filename_prefix + "png", format='png')
     plt.show()
     return
