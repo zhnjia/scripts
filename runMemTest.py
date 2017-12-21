@@ -59,6 +59,8 @@ def drawResult(filename_prefix):
                  , MEMSTATS[ITEM[6]] \
                  , labels=labels)
     ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    ax.grid(linestyle='-', color='darkgray')
+    ax.set_yticks(range(0, max(MEMSTATS[ITEM[7]]), 2))
     plt.savefig(filename_prefix + "png", format='png')
     plt.show()
     return
