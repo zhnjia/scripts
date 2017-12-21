@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-import threading, subprocess, signal, shlex, time, sys, json
+import threading, subprocess, signal, shlex, time, os, json
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
 
 PERIOD = 60 # 1 minute
-START = time.time()
-STOP = False
-DUMPMEMINFO = "adb shell dumpsys meminfo -s com.opera.android | head -n17 | tail -9"
+INTERVAL = 0.2
+DEFAULTPACKAGE = 'com.opera.android'
 ITEM = ['Java Heap', 'Native Heap', 'Code', 'Stack', 'Graphics', 'Private Other', 'System', 'TOTAL']
 MEMSTATS = dict.fromkeys(ITEM, [])
 
@@ -26,7 +26,8 @@ def collectMemSize(kv):
         return sz
     return -1
 
-def profileminimeminfo():
+def profileminimeminfo(process = DEFAULTPACKAGE):
+    DUMPMEMINFO = "adb shell dumpsys meminfo -s " + process + " | head -n17 | tail -9"
     args = shlex.split(DUMPMEMINFO)
     ps = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
     output = ps.stdout.readlines()
@@ -34,16 +35,15 @@ def profileminimeminfo():
         v = collectMemSize(l.split(':'))
         # if v != -1:
         #     print(v)
-    threading.Timer(0.5, profileminimeminfo).start()
+    threading.Timer(INTERVAL, profileminimeminfo).start()
     return
 
 def stopProfile(signum, frame):
-    STOP = True
-    fn = "./res_" + time.strftime("%Y%m%d%s") + "_"
+    fn = "./res_" + time.strftime("%Y%m%d%s") + "."
     saveResult(fn)
     savetojson(fn)
     drawResult(fn)
-    sys.exit()
+    os._exit(0)
 
 def drawResult(filename_prefix):
     x = range(0, len(MEMSTATS[ITEM[0]]))
@@ -56,13 +56,12 @@ def drawResult(filename_prefix):
                  , MEMSTATS[ITEM[3]] \
                  , MEMSTATS[ITEM[4]] \
                  , MEMSTATS[ITEM[5]] \
-                 , MEMSTATS[ITEM[6]]
+                 , MEMSTATS[ITEM[6]] \
                  , labels=labels)
     ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     plt.savefig(filename_prefix + "png", format='png')
     plt.show()
     return
-
 
 def saveResult(filename_prefix):
     res_f = filename_prefix + "orig"
@@ -84,5 +83,9 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, stopProfile)
     signal.signal(signal.SIGTERM, stopProfile)
 
-    START = time.time()
-    profileminimeminfo()
+    parser = argparse.ArgumentParser(description='memory profiler')
+    parser.add_argument('-p', type=str, dest='process', default=DEFAULTPACKAGE, help='Name of process to profiling.')
+    args = parser.parse_args()
+    print("Starting to profile: [" + args.process + "]")
+
+    profileminimeminfo(args.process)
