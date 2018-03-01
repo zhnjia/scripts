@@ -35,7 +35,7 @@ def profileminimeminfo(process = DEFAULTPACKAGE):
         v = collectMemSize(l.split(':'))
         # if v != -1:
         #     print(v)
-    threading.Timer(INTERVAL, profileminimeminfo).start()
+    threading.Timer(INTERVAL, profileminimeminfo(process)).start()
     return
 
 def stopProfile(signum, frame):
