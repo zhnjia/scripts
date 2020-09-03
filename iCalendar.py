@@ -1,8 +1,8 @@
 import sys
 import csv
 import calendar
-from datetime import datetime, date
-from icalendar import Calendar, Event, vDatetime
+from datetime import date, timedelta
+from icalendar import Calendar, Event, vDate
 
 COL_NAME = 0
 COL_DAY_OF_MONTH = 2
@@ -10,16 +10,18 @@ COL_DAY_OF_MONTH = 2
 def generateICS(name, month, duties):
     td = date.today()
     cal = Calendar()
-    cal['dtstart'] = datetime(td.year, month, 1)
-    day = 1
+    start_day = date(td.year, month, 1)
+    cal['dtstart'] = start_day
     for duty in duties:
         et = Event()
-        et['dtstart'] = vDatetime(datetime(td.year, month, day, 7, 30))
-        et['dtend'] = vDatetime(datetime(td.year, month, day, 23, 59, 59))
+        et['dtstart'] = vDate(start_day)
+        end_day = start_day + timedelta(days=1)
+        et['dtend'] = vDate(end_day)
         et['summary'] = duty
         cal.add_component(et)
-        day += 1
-    with open('./' + name + ".ics", 'w') as ics:
+        start_day = end_day
+
+    with open('./' + name + '-' + str(month) + '月.ics', 'w') as ics:
         ics.write(str(cal.to_ical(), encoding='utf-8').replace('\r\n', '\n').strip())
 
 if len(sys.argv) == 2:
